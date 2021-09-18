@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.5.10"
+    kotlin("plugin.serialization") version "1.5.10"
     application
 }
 
@@ -12,6 +13,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     testImplementation(kotlin("test"))
 }
 
@@ -22,3 +24,4 @@ tasks.getByName<Test>("test") {
 application {
     mainClass.set("MainKt")
 }
+
