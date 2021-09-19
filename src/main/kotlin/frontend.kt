@@ -4,6 +4,7 @@ package frontend
 
 // Собственные пакеты.
 import backend.download
+import backend.log
 import parser.parser
 import java.io.File
 
@@ -14,7 +15,7 @@ fun checkFile(file : File) : Boolean {
         println("Нет файла ${file.absolutePath}")
         return false
     }
-    if (file.extension != "dat") {
+    if (file.extension != "dat" && file.extension != "log") {
         println("${file.name} не текстовый файл")
         return false
     }
@@ -27,15 +28,16 @@ fun checkFile(file : File) : Boolean {
 
 // Работа со стандартным потоком ввода.
 fun input() {
-    val file = File("demo.dat")
-    if (checkFile(file)) {
-        val database = download(file)
-        println("Вы открыли доступ к базе данных ${file.nameWithoutExtension}")
-        println(database.data.keys)
+    val d = File("demo.dat")
+    val l = File("demo.log")
+    if (checkFile(d) && checkFile(l)) {
+        val database = download(d, l)
         do {
             val line = readLine()
-            if (line != null)
-                parser(database, line)
+            if (line != null) {
+                if (log(database, line))
+                    parser(database, line)
+            }
             if (line == "exit")
                 return
         } while (line != null)

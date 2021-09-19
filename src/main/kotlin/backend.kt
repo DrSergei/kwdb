@@ -14,7 +14,7 @@ import java.io.File
 data class Mark(val data: String, var use : Boolean)
 
 // Сама база данных.
-data class Database(val data : HashMap<String, Mark>, var counter : Int, val file : File)
+data class Database(val data : HashMap<String, Mark>, var counter : Int, val dataFile : File, val logFile : File)
 
 // Типы операций.
 enum class Operation {
@@ -39,7 +39,7 @@ fun transaction(database: Database, operation : Operation, vararg args : String)
         Operation.FIND -> {
             if (args.size == 1) {
                 val mark = database.data[args[0]]
-                if (mark == null)
+                if (mark == null || !mark.use)
                     println("Нет элемента с ключом ${args[0]}")
                 else
                     println(mark.data)
@@ -55,24 +55,46 @@ fun transaction(database: Database, operation : Operation, vararg args : String)
     }
 }
 
+// Записывает журнал транзакций
+fun log(database: Database, line : String) : Boolean{
+    try {
+        database.logFile.appendText(line + "\n")
+        return true
+    } catch (e : Exception) {
+        println("Ошибка записи в .log файл, повторите попытку.")
+        return false
+    }
+}
+
 // Удаление не используемых ключей(очистка).
 fun clear(database: Database) : Database{
-    return Database(database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.file)
+    try {
+        return Database(database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile)
+    } catch (e : Exception) {
+        println("Произошла ошибка при очистке базы данных.")
+        return database
+    }
 }
 
 // Загрузка базы данных в оперативную память.
-fun download(file : File) : Database {
-    val json = file.readText()
-    val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
-    return Database(buffer, 0, file)
+fun download(dataFile : File, logFile: File) : Database {
+    try {
+        val json = dataFile.readText()
+        val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
+        logFile.writeText("")
+        return Database(buffer, 0, dataFile, logFile)
+    } catch (e : Exception) {
+        println("Произошла ошибка при загрузке файла, повторите попытку.")
+        return Database(hashMapOf(), 0, dataFile, logFile)
+    }
 }
 
 // Сохранение результатов в файл, после очистки.
 fun save(database : Database) {
     try {
         val json = Json.encodeToString(clear(database).data)
-        database.file.writeText(json)
+        database.dataFile.writeText(json)
     } catch (e : Exception) {
-
+        println("Произошла ошибка при сохранении файла, повторите попытку.")
     }
 }

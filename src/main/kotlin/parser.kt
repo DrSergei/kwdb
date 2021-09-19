@@ -16,6 +16,8 @@ fun parser(database: Database, str : String) {
         1 -> {
             if (args[0] == "exit")
                 save(database)
+            else if (args[0] == "save")
+                save(database)
             else
                 println("Неверный аргумент ${args[0]}")
         }
