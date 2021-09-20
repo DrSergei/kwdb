@@ -1,3 +1,8 @@
+/**
+ * Пакет для обработки общения с пользователем.
+ *
+ * Поддерживает консольный ввод и базовые проверки.
+ */
 package frontend
 
 // Стандартная библиотека.
@@ -7,7 +12,6 @@ import backend.download
 import backend.log
 import parser.parser
 import java.io.File
-
 
 // Проверка адекватности переданного файла(существования, расширения и прав доступа).
 fun checkFile(file : File) : Boolean {

@@ -1,3 +1,9 @@
+/**
+ * Пакет для парсера ввода.
+ *
+ * Разбирает сообщения пользователя по шаблону
+ * (операция|арг1 или операция|арг1|арг2).
+ */
 package parser
 
 //Стандартная библиотке.
@@ -7,8 +13,15 @@ import backend.Database
 import backend.Operation
 import backend.save
 import backend.transaction
+import style.Message
+import style.report
 
-// Преобразует строку пользователя в запрос к базе данных.
+
+/**
+ * Служебная функция.
+ *
+ * Преобразует строку запроса от пользователя в инструкции для базы данных.
+ */
 fun parser(database: Database, str : String) {
     val args = str.split('|')
     when (args.size) {
@@ -19,7 +32,7 @@ fun parser(database: Database, str : String) {
             else if (args[0] == "save")
                 save(database)
             else
-                println("Неверный аргумент ${args[0]}")
+                report(Message.INVALID_ARGUMENTS)
         }
         2 -> {
             if (args[0] == "delete" || args[0] == "-")
@@ -27,14 +40,14 @@ fun parser(database: Database, str : String) {
             else if (args[0] == "find" || args[0] == "?")
                 transaction(database, Operation.FIND, args[1])
             else
-                println("Неверный аргумент ${args[0]}")
+                report(Message.INVALID_ARGUMENTS)
         }
         3 -> {
             if (args[0] == "insert" || args[0] == "+")
                 transaction(database, Operation.INSERT, args[1], args[2])
             else
-                println("Неверный аргумент ${args[0]}")
+                report(Message.INVALID_ARGUMENTS)
         }
-        else -> println("Лишние аргументы")
+        else -> report(Message.INVALID_ARGUMENTS)
     }
 }

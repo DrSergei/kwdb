@@ -1,82 +1,125 @@
+/**
+ * Пакет для реализации базы данных.
+ *
+ * Используется HashMap для поддержки быстрых операций с базой данных,
+ * есть функции для загрузки и сохранения работы
+ * (хранит данные в json).
+ */
 package backend
 
 // Стандартная библиотека.
+
+// Собственные пакеты.
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import style.Message
+import style.report
 import java.io.File
 
-// Собственные пакеты.
-
-// Запись в базе данных.
+/**
+ * Запись в базе данных.
+ *
+ * Класс для хранения данных.
+ */
 @Serializable
 data class Mark(val data: String, var use : Boolean)
 
-// Сама база данных.
+/**
+ * Сама база данных.
+ *
+ *  Класс для хранения данных.
+ */
 data class Database(val data : HashMap<String, Mark>, var counter : Int, val dataFile : File, val logFile : File)
 
-// Типы операций.
+/**
+ * Типы операций.
+ *
+ * Кодируют основыне операции с данными, в будущем будет расширяться.
+ *
+ */
 enum class Operation {
     DELETE, INSERT, FIND
 }
 
-// Операции с данными.
+
+/**
+ * Служебная функция.
+ *
+ * Исполняет обращения к базе данных.
+ */
 fun transaction(database: Database, operation : Operation, vararg args : String) {
-    when (operation) {
-        Operation.DELETE -> {
-            if (args.size == 1) {
-                val mark = database.data[args[0]]
-                if (mark == null)
-                    println("Нет элемента с ключом ${args[0]}")
-                else if (!mark.use)
-                    println("Элемент с ключом ${args[0]} удален")
+    try {
+        when (operation) {
+            Operation.DELETE -> {
+                if (args.size == 1) {
+                    val mark = database.data[args[0]]
+                    if (mark == null)
+                        report(Message.MISSING_KEY)
+                    else if (!mark.use)
+                        report(Message.REMOTE_KEY)
+                    else
+                        mark.use = false
+                } else
+                    report(Message.INVALID_ARGUMENTS)
+            }
+            Operation.FIND -> {
+                if (args.size == 1) {
+                    val mark = database.data[args[0]]
+                    if (mark == null || !mark.use)
+                        report(Message.MISSING_KEY)
+                    else
+                        println(mark.data)
+                } else
+                    report(Message.INVALID_ARGUMENTS)
+            }
+            Operation.INSERT -> {
+                if (args.size == 2)
+                    database.data[args[0]] = Mark(args[1], true)
                 else
-                    mark.use = false
-            } else
-                println("Неверное число аргументов")
+                    report(Message.INVALID_ARGUMENTS)
+            }
         }
-        Operation.FIND -> {
-            if (args.size == 1) {
-                val mark = database.data[args[0]]
-                if (mark == null || !mark.use)
-                    println("Нет элемента с ключом ${args[0]}")
-                else
-                    println(mark.data)
-            } else
-                println("Неверное число аргументов")
-        }
-        Operation.INSERT -> {
-            if (args.size == 2)
-                database.data[args[0]] = Mark(args[1], true)
-            else
-                println("Неверное число аргументов")
-        }
+    } catch (e : Exception) {
+        report(Message.ERROR_TRANSACTION)
     }
 }
 
-// Записывает журнал транзакций
+/**
+ * Служебная функция.
+ *
+ * Логгирует операции, исполненные на базе данных.
+ */
 fun log(database: Database, line : String) : Boolean{
     try {
         database.logFile.appendText(line + "\n")
         return true
     } catch (e : Exception) {
-        println("Ошибка записи в .log файл, повторите попытку.")
+        report(Message.ERROR_LOG)
         return false
     }
 }
 
-// Удаление не используемых ключей(очистка).
+/**
+ * Служебная функция.
+ *
+ * Очищает базу данных от удаленных значений, перестраивает структуру данных.
+ */
 fun clear(database: Database) : Database{
     try {
         return Database(database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile)
     } catch (e : Exception) {
-        println("Произошла ошибка при очистке базы данных.")
+        report(Message.ERROR_CLEAR)
         return database
     }
 }
 
-// Загрузка базы данных в оперативную память.
+/**
+* Служебная функция.
+*
+* Загружает базу данных и лог файл.
+*/
 fun download(dataFile : File, logFile: File) : Database {
     try {
         val json = dataFile.readText()
@@ -84,17 +127,21 @@ fun download(dataFile : File, logFile: File) : Database {
         logFile.writeText("")
         return Database(buffer, 0, dataFile, logFile)
     } catch (e : Exception) {
-        println("Произошла ошибка при загрузке файла, повторите попытку.")
+        report(Message.ERROR_DOWNLOAD)
         return Database(hashMapOf(), 0, dataFile, logFile)
     }
 }
 
-// Сохранение результатов в файл, после очистки.
+/**
+ * Служебная функция.
+ *
+ * Сохраняет базу данных из оперативной памяти на диск.
+ */
 fun save(database : Database) {
     try {
         val json = Json.encodeToString(clear(database).data)
         database.dataFile.writeText(json)
     } catch (e : Exception) {
-        println("Произошла ошибка при сохранении файла, повторите попытку.")
+        report(Message.ERROR_SAVE)
     }
 }
