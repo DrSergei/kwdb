@@ -29,18 +29,18 @@ enum class Message {
  *
  * Информирует пользователя об ошибках.
  */
-fun report(message: Message) {
+fun report(message: Message) : String {
     when (message) {
-        Message.ERROR_SAVE -> {println("Произошла ошибка при сохранении, повторите попытку.")}
-        Message.ERROR_LOG -> {println("Произошла ошибка при логгировании, повторите попытку.")}
-        Message.ERROR_CLEAR -> {println("Произошла ошибка при очистке, повторите попытку.")}
-        Message.ERROR_DOWNLOAD -> {println("Произошла ошибка при логгировании, повторите попытку.")}
-        Message.ERROR_TRANSACTION -> {println("Произошла ошибка при обращеннии к базе данных.")}
-        Message.INVALID_ARGUMENTS -> {println("Неверные аргументы.")}
-        Message.REMOTE_KEY -> {println("Ключ удален, но память не очищена.")}
-        Message.MISSING_KEY -> {println("Нет ключа.")}
-        Message.MISSING_FILE -> {println("Нет файла.")}
-        Message.INVALID_EXTENSION -> {println("Неверное расширение.")}
-        Message.ERROR_READ -> {println("Ошибка на чтение.")}
+        Message.ERROR_SAVE -> return "Произошла ошибка при сохранении, повторите попытку."
+        Message.ERROR_LOG -> return "Произошла ошибка при логгировании, повторите попытку."
+        Message.ERROR_CLEAR -> return "Произошла ошибка при очистке, повторите попытку."
+        Message.ERROR_DOWNLOAD -> return "Произошла ошибка при логгировании, повторите попытку."
+        Message.ERROR_TRANSACTION -> return "Произошла ошибка при обращеннии к базе данных."
+        Message.INVALID_ARGUMENTS -> return "Неверные аргументы."
+        Message.REMOTE_KEY -> return "Ключ удален, но память не очищена."
+        Message.MISSING_KEY -> return "Нет ключа."
+        Message.MISSING_FILE -> return "Нет файла."
+        Message.INVALID_EXTENSION -> return "Неверное расширение."
+        Message.ERROR_READ -> return "Ошибка на чтение."
     }
 }

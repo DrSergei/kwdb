@@ -24,80 +24,73 @@ import java.io.File
  * Класс для хранения данных.
  */
 @Serializable
-data class Mark(val data: String, var use : Boolean)
+data class Mark(val data: String, var use: Boolean)
 
 /**
  * Сама база данных.
  *
  *  Класс для хранения данных.
  */
-data class Database(val data : HashMap<String, Mark>, var counter : Int, val dataFile : File, val logFile : File)
+data class Database(val data: HashMap<String, Mark>, var counter: Int, val dataFile: File, val logFile: File)
 
 /**
- * Типы операций.
+ * Пул баз данных
  *
- * Кодируют основыне операции с данными, в будущем будет расширяться.
- *
+ *  Класс для хранения запущенных баз данных.
  */
-enum class Operation {
-    DELETE, INSERT, FIND
-}
+data class Pool(val data: MutableMap<String, Database>)
 
 
 /**
  * Служебная функция.
  *
- * Исполняет обращения к базе данных.
+ * Вставляет пару ключ, значение в базу данных
  */
-fun transaction(database: Database, operation : Operation, vararg args : String) {
+fun insert(database: Database, key: String, value: String) {
     try {
-        when (operation) {
-            Operation.DELETE -> {
-                if (args.size == 1) {
-                    val mark = database.data[args[0]]
-                    if (mark == null)
-                        report(Message.MISSING_KEY)
-                    else if (!mark.use)
-                        report(Message.REMOTE_KEY)
-                    else
-                        mark.use = false
-                } else
-                    report(Message.INVALID_ARGUMENTS)
-            }
-            Operation.FIND -> {
-                if (args.size == 1) {
-                    val mark = database.data[args[0]]
-                    if (mark == null || !mark.use)
-                        report(Message.MISSING_KEY)
-                    else
-                        println(mark.data)
-                } else
-                    report(Message.INVALID_ARGUMENTS)
-            }
-            Operation.INSERT -> {
-                if (args.size == 2)
-                    database.data[args[0]] = Mark(args[1], true)
-                else
-                    report(Message.INVALID_ARGUMENTS)
-            }
-        }
-    } catch (e : Exception) {
-        report(Message.ERROR_TRANSACTION)
+        database.data.put(key, Mark(value, true))
+    } catch (e: Exception) {
     }
 }
 
 /**
  * Служебная функция.
  *
- * Логгирует операции, исполненные на базе данных.
+ * Удаляет значение по заданному ключу.
  */
-fun log(database: Database, line : String) : Boolean{
+fun delete(database: Database, key: String): Boolean {
     try {
-        database.logFile.appendText(line + "\n")
-        return true
-    } catch (e : Exception) {
-        report(Message.ERROR_LOG)
+        val mark = database.data.get(key)
+        if (mark == null)
+            return false
+        else if (mark.use == false)
+            return false
+        else {
+            mark.use = false
+            return true
+        }
+    } catch (e: Exception) {
         return false
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Ищет значение по ключу.
+ */
+fun find(database: Database, key: String): String {
+    try {
+        val mark = database.data.get(key)
+        if (mark == null)
+            return ""
+        else if (mark.use == false)
+            return ""
+        else {
+            return mark.data
+        }
+    } catch (e: Exception) {
+        return ""
     }
 }
 
@@ -106,28 +99,44 @@ fun log(database: Database, line : String) : Boolean{
  *
  * Очищает базу данных от удаленных значений, перестраивает структуру данных.
  */
-fun clear(database: Database) : Database{
+fun clear(database: Database): Database {
     try {
-        return Database(database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile)
-    } catch (e : Exception) {
-        report(Message.ERROR_CLEAR)
+        return Database(database.data.filter { it.value.use } as HashMap<String, Mark>,
+            0,
+            database.dataFile,
+            database.logFile)
+    } catch (e: Exception) {
         return database
     }
 }
 
 /**
-* Служебная функция.
-*
-* Загружает базу данных и лог файл.
-*/
-fun download(dataFile : File, logFile: File) : Database {
+ * Служебная функция.
+ *
+ * Логгирует операции, исполненные на базе данных.
+ */
+fun log(database: Database, line: String): Boolean {
+    try {
+        database.logFile.appendText(line + "\n")
+        return true
+    } catch (e: Exception) {
+        report(Message.ERROR_LOG)
+        return false
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Загружает базу данных и лог файл.
+ */
+fun download(dataFile: File, logFile: File): Database {
     try {
         val json = dataFile.readText()
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
         logFile.writeText("")
         return Database(buffer, 0, dataFile, logFile)
-    } catch (e : Exception) {
-        report(Message.ERROR_DOWNLOAD)
+    } catch (e: Exception) {
         return Database(hashMapOf(), 0, dataFile, logFile)
     }
 }
@@ -137,11 +146,26 @@ fun download(dataFile : File, logFile: File) : Database {
  *
  * Сохраняет базу данных из оперативной памяти на диск.
  */
-fun save(database : Database) {
+fun save(database: Database): Database {
     try {
         val json = Json.encodeToString(clear(database).data)
         database.dataFile.writeText(json)
-    } catch (e : Exception) {
-        report(Message.ERROR_SAVE)
+        return database
+    } catch (e: Exception) {
+        return database
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Сохраняет базу данных из оперативной памяти на диск.
+ */
+fun exit(pool: Pool, key: String): Boolean {
+    try {
+        pool.data.remove(key)
+        return true
+    } catch (e: Exception) {
+        return false
     }
 }

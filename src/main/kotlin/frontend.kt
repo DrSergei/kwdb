@@ -8,13 +8,14 @@ package frontend
 // Стандартная библиотека.
 
 // Собственные пакеты.
-import backend.download
-import backend.log
+import backend.Pool
+import parser.Arguments
+import parser.Operation
 import parser.parser
 import java.io.File
 
 // Проверка адекватности переданного файла(существования, расширения и прав доступа).
-fun checkFile(file : File) : Boolean {
+fun checkFile(file: File): Boolean {
     if (!file.exists()) {
         println("Нет файла ${file.absolutePath}")
         return false
@@ -30,21 +31,36 @@ fun checkFile(file : File) : Boolean {
     return true
 }
 
+fun distributionInput(pool: Pool, arguments: Arguments) {
+    when (arguments.operation) {
+        Operation.INSERT -> {
+        }
+        Operation.DELETE -> {
+        }
+        Operation.FIND -> {
+        }
+        Operation.CLEAR -> {
+        }
+        Operation.DOWNLOAD -> {
+        }
+        Operation.SAVE -> {
+        }
+        Operation.EXIT -> {
+        }
+        Operation.ERROR -> {
+        }
+        Operation.NULL -> {
+        }
+    }
+}
+
 // Работа со стандартным потоком ввода.
 fun input() {
-    val d = File("demo.dat")
-    val l = File("demo.log")
-    if (checkFile(d) && checkFile(l)) {
-        val database = download(d, l)
-        do {
-            val line = readLine()
-            if (line != null) {
-                if (log(database, line))
-                    parser(database, line)
-            }
-            if (line == "exit")
-                return
-        } while (line != null)
+    val pool = Pool(mutableMapOf())
+    var request = ""
+    while (request != null) {
+        val arguments = parser(request)
+        distributionInput(pool, arguments)
+        request = readLine()!!
     }
-
 }
