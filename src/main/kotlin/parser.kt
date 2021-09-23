@@ -10,7 +10,6 @@ package parser
 
 // Собственные пакеты.
 
-
 data class Arguments(val name: String, val operation: Operation, val arg: List<String>)
 
 /**

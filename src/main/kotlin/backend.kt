@@ -46,10 +46,12 @@ data class Pool(val data: MutableMap<String, Database>)
  *
  * Вставляет пару ключ, значение в базу данных
  */
-fun insert(database: Database, key: String, value: String) {
+fun insert(database: Database, key: String, value: String) : Message {
     try {
         database.data.put(key, Mark(value, true))
+        return Message.SUCCESSFUL_TRANSACTION
     } catch (e: Exception) {
+        return Message.ERROR_INSERT
     }
 }
 
@@ -58,19 +60,20 @@ fun insert(database: Database, key: String, value: String) {
  *
  * Удаляет значение по заданному ключу.
  */
-fun delete(database: Database, key: String): Boolean {
+fun delete(database: Database, key: String): Message {
     try {
         val mark = database.data.get(key)
         if (mark == null)
-            return false
+            return Message.MISSING_KEY
         else if (mark.use == false)
-            return false
+            return Message.REMOTE_KEY
         else {
             mark.use = false
-            return true
+            database.counter++
+            return Message.SUCCESSFUL_TRANSACTION
         }
     } catch (e: Exception) {
-        return false
+        return Message.ERROR_DELETE
     }
 }
 
@@ -79,18 +82,18 @@ fun delete(database: Database, key: String): Boolean {
  *
  * Ищет значение по ключу.
  */
-fun find(database: Database, key: String): String {
+fun find(database: Database, key: String): Pair<String, Message> {
     try {
         val mark = database.data.get(key)
         if (mark == null)
-            return ""
+            return Pair(report(Message.MISSING_KEY), Message.MISSING_KEY)
         else if (mark.use == false)
-            return ""
+            return (Pair(report(Message.REMOTE_KEY),Message.REMOTE_KEY))
         else {
-            return mark.data
+            return Pair(mark.data, Message.SUCCESSFUL_TRANSACTION)
         }
     } catch (e: Exception) {
-        return ""
+        return Pair(report(Message.ERROR_FIND),Message.ERROR_FIND)
     }
 }
 
@@ -99,14 +102,11 @@ fun find(database: Database, key: String): String {
  *
  * Очищает базу данных от удаленных значений, перестраивает структуру данных.
  */
-fun clear(database: Database): Database {
+fun clear(database: Database): Pair<Database, Message> {
     try {
-        return Database(database.data.filter { it.value.use } as HashMap<String, Mark>,
-            0,
-            database.dataFile,
-            database.logFile)
+        return Pair(Database(database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return database
+        return Pair(database, Message.ERROR_CLEAR)
     }
 }
 
@@ -115,13 +115,12 @@ fun clear(database: Database): Database {
  *
  * Логгирует операции, исполненные на базе данных.
  */
-fun log(database: Database, line: String): Boolean {
+fun log(database: Database, line: String): Message {
     try {
         database.logFile.appendText(line + "\n")
-        return true
+        return Message.SUCCESSFUL_TRANSACTION
     } catch (e: Exception) {
-        report(Message.ERROR_LOG)
-        return false
+        return Message.ERROR_LOG
     }
 }
 
@@ -130,14 +129,14 @@ fun log(database: Database, line: String): Boolean {
  *
  * Загружает базу данных и лог файл.
  */
-fun download(dataFile: File, logFile: File): Database {
+fun download(dataFile: File, logFile: File): Pair<Database, Message> {
     try {
         val json = dataFile.readText()
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
         logFile.writeText("")
-        return Database(buffer, 0, dataFile, logFile)
+        return Pair(Database(buffer, 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return Database(hashMapOf(), 0, dataFile, logFile)
+        return Pair(Database(hashMapOf(), 0, dataFile, logFile), Message.ERROR_DOWNLOAD)
     }
 }
 
@@ -146,13 +145,17 @@ fun download(dataFile: File, logFile: File): Database {
  *
  * Сохраняет базу данных из оперативной памяти на диск.
  */
-fun save(database: Database): Database {
+fun save(database: Database): Pair<Database, Message> {
     try {
-        val json = Json.encodeToString(clear(database).data)
-        database.dataFile.writeText(json)
-        return database
+        val buffer = clear(database)
+        if (buffer.second == Message.SUCCESSFUL_TRANSACTION) {
+            val json = Json.encodeToString(buffer.first.data)
+            database.dataFile.writeText(json)
+            return Pair(database, Message.SUCCESSFUL_TRANSACTION)
+        } else
+            return Pair(database, Message.ERROR_CLEAR)
     } catch (e: Exception) {
-        return database
+        return Pair(database, Message.ERROR_SAVE)
     }
 }
 
@@ -161,11 +164,21 @@ fun save(database: Database): Database {
  *
  * Сохраняет базу данных из оперативной памяти на диск.
  */
-fun exit(pool: Pool, key: String): Boolean {
+fun exit(pool: Pool, key: String): Message {
     try {
-        pool.data.remove(key)
-        return true
+        val database = pool.data.get(key)
+        if (database == null)
+            return Message.MISSING_KEY
+        else {
+            val buffer = save(database)
+            if (buffer.second == Message.SUCCESSFUL_TRANSACTION) {
+                pool.data.remove(key)
+                return Message.SUCCESSFUL_TRANSACTION
+            } else {
+                return Message.ERROR_SAVE
+            }
+        }
     } catch (e: Exception) {
-        return false
+        return Message.ERROR_EXIT
     }
 }
