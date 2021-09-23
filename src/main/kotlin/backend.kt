@@ -90,7 +90,7 @@ fun find(database: Database, key: String): Pair<String, Message> {
         else if (mark.use == false)
             return (Pair(report(Message.REMOTE_KEY),Message.REMOTE_KEY))
         else {
-            return Pair(mark.data, Message.SUCCESSFUL_TRANSACTION)
+            return Pair(mark.data + "\n", Message.SUCCESSFUL_TRANSACTION)
         }
     } catch (e: Exception) {
         return Pair(report(Message.ERROR_FIND),Message.ERROR_FIND)
@@ -151,9 +151,9 @@ fun save(database: Database): Pair<Database, Message> {
         if (buffer.second == Message.SUCCESSFUL_TRANSACTION) {
             val json = Json.encodeToString(buffer.first.data)
             database.dataFile.writeText(json)
-            return Pair(database, Message.SUCCESSFUL_TRANSACTION)
+            return Pair(buffer.first, Message.SUCCESSFUL_TRANSACTION)
         } else
-            return Pair(database, Message.ERROR_CLEAR)
+            return Pair(buffer.first, Message.ERROR_CLEAR)
     } catch (e: Exception) {
         return Pair(database, Message.ERROR_SAVE)
     }
