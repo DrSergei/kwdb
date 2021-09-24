@@ -8,15 +8,15 @@
 package backend
 
 // Стандартная библиотека.
-
-// Собственные пакеты.
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import style.Message
-import style.report
 import java.io.File
+
+// Собственные пакеты.
+import style.*
+
 
 /**
  * Запись в базе данных.
@@ -31,7 +31,13 @@ data class Mark(val data: String, var use: Boolean)
  *
  *  Класс для хранения данных.
  */
-data class Database(val data: HashMap<String, Mark>, var counter: Int, val dataFile: File, val logFile: File)
+data class Database(
+    val name: String,
+    val data: HashMap<String, Mark>,
+    var counter: Int,
+    val dataFile: File,
+    val logFile: File,
+)
 
 /**
  * Пул баз данных
@@ -46,9 +52,9 @@ data class Pool(val data: MutableMap<String, Database>)
  *
  * Вставляет пару ключ, значение в базу данных
  */
-fun insert(database: Database, key: String, value: String) : Message {
+fun insert(database: Database, key: String, value: String): Message {
     try {
-        database.data.put(key, Mark(value, true))
+        database.data[key] = Mark(value, true)
         return Message.SUCCESSFUL_TRANSACTION
     } catch (e: Exception) {
         return Message.ERROR_INSERT
@@ -62,10 +68,10 @@ fun insert(database: Database, key: String, value: String) : Message {
  */
 fun delete(database: Database, key: String): Message {
     try {
-        val mark = database.data.get(key)
+        val mark = database.data[key]
         if (mark == null)
             return Message.MISSING_KEY
-        else if (mark.use == false)
+        else if (!mark.use)
             return Message.REMOTE_KEY
         else {
             mark.use = false
@@ -84,16 +90,15 @@ fun delete(database: Database, key: String): Message {
  */
 fun find(database: Database, key: String): Pair<String, Message> {
     try {
-        val mark = database.data.get(key)
+        val mark = database.data[key]
         if (mark == null)
             return Pair(report(Message.MISSING_KEY), Message.MISSING_KEY)
-        else if (mark.use == false)
-            return (Pair(report(Message.REMOTE_KEY),Message.REMOTE_KEY))
-        else {
+        else if (!mark.use)
+            return (Pair(report(Message.REMOTE_KEY), Message.REMOTE_KEY))
+        else
             return Pair(mark.data + "\n", Message.SUCCESSFUL_TRANSACTION)
-        }
     } catch (e: Exception) {
-        return Pair(report(Message.ERROR_FIND),Message.ERROR_FIND)
+        return Pair(report(Message.ERROR_FIND), Message.ERROR_FIND)
     }
 }
 
@@ -104,7 +109,27 @@ fun find(database: Database, key: String): Pair<String, Message> {
  */
 fun clear(database: Database): Pair<Database, Message> {
     try {
-        return Pair(Database(database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database(database.name,
+            database.data.filter { it.value.use } as HashMap<String, Mark>,
+            0,
+            database.dataFile,
+            database.logFile), Message.SUCCESSFUL_TRANSACTION)
+    } catch (e: Exception) {
+        return Pair(database, Message.ERROR_CLEAR)
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Делает все записи активными.
+ */
+fun recovery(database: Database): Pair<Database, Message> {
+    try {
+        for (mark in database.data)
+            mark.value.use = true
+        database.counter = 0
+        return Pair(database, Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
         return Pair(database, Message.ERROR_CLEAR)
     }
@@ -134,9 +159,9 @@ fun download(dataFile: File, logFile: File): Pair<Database, Message> {
         val json = dataFile.readText()
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
         logFile.writeText("")
-        return Pair(Database(buffer, 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database("demo", buffer, 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return Pair(Database(hashMapOf(), 0, dataFile, logFile), Message.ERROR_DOWNLOAD)
+        return Pair(Database("", hashMapOf(), 0, dataFile, logFile), Message.ERROR_DOWNLOAD)
     }
 }
 
@@ -166,7 +191,7 @@ fun save(database: Database): Pair<Database, Message> {
  */
 fun exit(pool: Pool, key: String): Message {
     try {
-        val database = pool.data.get(key)
+        val database = pool.data[key]
         if (database == null)
             return Message.MISSING_KEY
         else {
@@ -174,9 +199,8 @@ fun exit(pool: Pool, key: String): Message {
             if (buffer.second == Message.SUCCESSFUL_TRANSACTION) {
                 pool.data.remove(key)
                 return Message.SUCCESSFUL_TRANSACTION
-            } else {
+            } else
                 return Message.ERROR_SAVE
-            }
         }
     } catch (e: Exception) {
         return Message.ERROR_EXIT

@@ -5,6 +5,10 @@
  */
 package style
 
+// Стандартная библиотека
+
+// Собственная библиотека
+
 /**
  * Типы сообщений.
  *
@@ -26,7 +30,8 @@ enum class Message {
     MISSING_KEY, // нет ключа
     MISSING_FILE, // нет файла
     INVALID_EXTENSION, // неправильное расширение
-    ERROR_READ, // зпрещено чтение
+    ERROR_READ, // запрещено чтение
+    ERROR_WRITE // запрещена запись
 }
 
 /**
@@ -34,7 +39,7 @@ enum class Message {
  *
  * Информирует пользователя об ошибках.
  */
-fun report(message: Message) : String {
+fun report(message: Message): String {
     when (message) {
         Message.ERROR_SAVE -> return "Произошла ошибка при сохранении, повторите попытку.\n"
         Message.ERROR_LOG -> return "Произошла ошибка при логгировании, повторите попытку.\n"
@@ -52,5 +57,6 @@ fun report(message: Message) : String {
         Message.MISSING_FILE -> return "Нет файла.\n"
         Message.INVALID_EXTENSION -> return "Неверное расширение.\n"
         Message.ERROR_READ -> return "Ошибка на чтение.\n"
+        Message.ERROR_WRITE -> return "Ошибка на запись.\n"
     }
 }
