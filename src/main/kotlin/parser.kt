@@ -25,7 +25,7 @@ data class Arguments(val name: String, val operation: Operation, val arg: List<S
 enum class Operation {
     INSERT, DELETE, FIND, CLEAR, RECOVERY, // операции с самой базой данной(вставка, удаление, поиск, очистка, восстановление)
     SAVE, DOWNLOAD, EXIT, // операции с диком(сохранение, загрузка, выход)
-    ERROR, NULL // служебные(ошибка, пустой ввод)
+    ERROR, NULL, END // служебные(ошибка, пустой ввод)
 }
 
 /**
@@ -36,6 +36,8 @@ enum class Operation {
 fun parser(request: String): Arguments {
     if (request == "")
         return Arguments("", Operation.NULL, listOf())
+    if (request == "end")
+        return Arguments("", Operation.END, listOf())
     else {
         val args = request.split(':')
         if (args.size < 2)

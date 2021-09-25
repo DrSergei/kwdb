@@ -48,7 +48,7 @@ fun report(message: Message): String {
         Message.ERROR_INSERT -> return "Произошла ошибка при вставке, повторите попытку.\n"
         Message.ERROR_DELETE -> return "Произошла ошибка при удалении, повторите поытку.\n"
         Message.ERROR_FIND -> return "Произошла ошибка при поиске, повторите попытку.\n"
-        Message.ERROR_EXIT -> return "Произошла ошибка при отключении, повторите попытку"
+        Message.ERROR_EXIT -> return "Произошла ошибка при отключении, повторите попытку.\n"
         Message.ERROR_TRANSACTION -> return "Произошла ошибка при обращеннии к базе данных.\n"
         Message.SUCCESSFUL_TRANSACTION -> return "Успешная операция.\n"
         Message.INVALID_ARGUMENTS -> return "Неверные аргументы.\n"

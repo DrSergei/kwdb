@@ -43,8 +43,15 @@ fun checkFile(file: File): Boolean {
  *
  * Обработчик операции вставки.
  */
-fun handlerInsert(database: Database, args: List<String>): String {
-    if (args.size == 2)
+fun handlerInsert(pool: Pool, database: Database, args: List<String>): String {
+    if (args.size == 2 && database.name == "pool") {
+        val result = StringBuilder()
+        pool.data.map {
+            if (it.key != "pool")
+                result.append("${it.value.name}:" + report(insert(it.value, args[0], args[1])))
+        }
+        return result.toString()
+    } else if (args.size == 2)
         return report(insert(database, args[0], args[1]))
     else
         return report(Message.INVALID_ARGUMENTS)
@@ -55,8 +62,15 @@ fun handlerInsert(database: Database, args: List<String>): String {
  *
  * Обработчик операции удаления.
  */
-fun handlerDelete(database: Database, args: List<String>): String {
-    if (args.size == 1)
+fun handlerDelete(pool: Pool, database: Database, args: List<String>): String {
+    if (args.size == 1 && database.name == "pool") {
+        val result = StringBuilder()
+        pool.data.map {
+            if (it.key != "pool")
+                result.append("${it.value.name}:" + report(delete(it.value, args[0])))
+        }
+        return result.toString()
+    } else if (args.size == 1)
         return report(delete(database, args[0]))
     else
         return report(Message.INVALID_ARGUMENTS)
@@ -67,8 +81,15 @@ fun handlerDelete(database: Database, args: List<String>): String {
  *
  * Обработчик операции поиска.
  */
-fun handlerFind(database: Database, args: List<String>): String {
-    if (args.size == 1)
+fun handlerFind(pool: Pool, database: Database, args: List<String>): String {
+    if (args.size == 1 && database.name == "pool") {
+        val result = StringBuilder()
+        pool.data.map {
+            if (it.key != "pool")
+                result.append("${it.value.name}:" + find(it.value, args[0]).first)
+        }
+        return result.toString()
+    } else if (args.size == 1)
         return find(database, args[0]).first
     else
         return report(Message.INVALID_ARGUMENTS)
@@ -80,7 +101,17 @@ fun handlerFind(database: Database, args: List<String>): String {
  * Обработчик операции очистки.
  */
 fun handlerClear(pool: Pool, database: Database, args: List<String>): String {
-    if (args.isEmpty()) {
+    if (args.isEmpty() && database.name == "pool") {
+        val result = StringBuilder()
+        pool.data.map {
+            if (it.key != "pool") {
+                val buffer = clear(it.value)
+                pool.data[it.value.name] = buffer.first
+                result.append("${it.value.name}:" + report(buffer.second))
+            }
+        }
+        return result.toString()
+    } else if (args.isEmpty()) {
         val buffer = clear(database)
         pool.data[database.name] = buffer.first
         return report(buffer.second)
@@ -94,7 +125,17 @@ fun handlerClear(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик операции восстановления.
  */
 fun handlerRecovery(pool: Pool, database: Database, args: List<String>): String {
-    if (args.isEmpty()) {
+    if (args.isEmpty() && database.name == "pool") {
+        val result = StringBuilder()
+        pool.data.map {
+            if(it.key != "pool") {
+                val buffer = recovery(it.value)
+                pool.data[it.value.name] = buffer.first
+                result.append("${it.value.name}:" + report(buffer.second))
+            }
+        }
+        return result.toString()
+    } else if (args.isEmpty()) {
         val buffer = recovery(database)
         pool.data[database.name] = buffer.first
         return report(buffer.second)
@@ -108,7 +149,14 @@ fun handlerRecovery(pool: Pool, database: Database, args: List<String>): String 
  * Обработчик операции загрузки базы данных.
  */
 fun handlerDownload(pool: Pool, database: Database, args: List<String>): String {
-    return ""
+    if (args.size == 3 && database.name == "pool") {
+        val dataFile = File(args[1])
+        val logFile = File(args[2])
+        val buffer = download(args[0], dataFile, logFile)
+        pool.data[args[0]] = buffer.first
+        return report(buffer.second)
+    } else
+        return report(Message.INVALID_ARGUMENTS)
 }
 
 /**
@@ -117,7 +165,17 @@ fun handlerDownload(pool: Pool, database: Database, args: List<String>): String 
  * Обработчик операции сохранения базы данных.
  */
 fun handlerSave(pool: Pool, database: Database, args: List<String>): String {
-    if (args.isEmpty()) {
+    if (args.isEmpty() && database.name == "pool") {
+        val result = StringBuilder()
+        pool.data.map {
+            if (it.key != "pool") {
+                val buffer = save(it.value)
+                pool.data[it.value.name] = buffer.first
+                result.append("${it.value.name}:" + report(buffer.second))
+            }
+        }
+        return result.toString()
+    } else if (args.isEmpty()) {
         val buffer = save(database)
         pool.data[database.name] = buffer.first
         return report(buffer.second)
@@ -132,9 +190,12 @@ fun handlerSave(pool: Pool, database: Database, args: List<String>): String {
  */
 fun handlerExit(pool: Pool, database: Database, args: List<String>): String {
     if (database.name == "pool" && args.isEmpty()) {
-        for (db in pool.data)
-            exit(pool, db.key)
-        return "Конец работы"
+        val result = StringBuilder()
+        pool.data.map {
+            if (it.key != "pool")
+                result.append("${it.value.name}:" + report(exit(pool, it.key)))
+        }
+        return result.toString()
     } else if (args.isEmpty())
         return report(exit(pool, database.name))
     else
@@ -157,9 +218,9 @@ fun distributionInput(pool: Pool, arguments: Arguments): String {
     if (database != null) {
         log(database, listOf(arguments.operation.name, arguments.arg).joinToString(":"))
         when (arguments.operation) {
-            Operation.INSERT -> return handlerInsert(database, arguments.arg)
-            Operation.DELETE -> return handlerDelete(database, arguments.arg)
-            Operation.FIND -> return handlerFind(database, arguments.arg)
+            Operation.INSERT -> return handlerInsert(pool, database, arguments.arg)
+            Operation.DELETE -> return handlerDelete(pool, database, arguments.arg)
+            Operation.FIND -> return handlerFind(pool, database, arguments.arg)
             Operation.CLEAR -> return handlerClear(pool, database, arguments.arg)
             Operation.RECOVERY -> return handlerRecovery(pool, database, arguments.arg)
             Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
@@ -167,6 +228,7 @@ fun distributionInput(pool: Pool, arguments: Arguments): String {
             Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
             Operation.ERROR -> return handlerError()
             Operation.NULL -> return ""
+            Operation.END -> return ""
         }
     } else
         return report(Message.INVALID_ARGUMENTS)
@@ -180,10 +242,12 @@ fun distributionInput(pool: Pool, arguments: Arguments): String {
 fun input() {
     val pool = Pool(mutableMapOf())
     pool.data["pool"] = Database("pool", hashMapOf(), 0, File(""), File(""))
-    pool.data["demo"] = download(File("demo.dat"), File("demo.log")).first
+    pool.data["demo"] = download("demo", File("demo.dat"), File("demo.log")).first
     var request: String? = ""
     while (request != null) {
         val arguments = parser(request)
+        if (arguments.operation == Operation.END)
+            return
         print(distributionInput(pool, arguments))
         request = readLine()
     }

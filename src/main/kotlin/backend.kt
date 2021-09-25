@@ -17,7 +17,6 @@ import java.io.File
 // Собственные пакеты.
 import style.*
 
-
 /**
  * Запись в базе данных.
  *
@@ -109,11 +108,7 @@ fun find(database: Database, key: String): Pair<String, Message> {
  */
 fun clear(database: Database): Pair<Database, Message> {
     try {
-        return Pair(Database(database.name,
-            database.data.filter { it.value.use } as HashMap<String, Mark>,
-            0,
-            database.dataFile,
-            database.logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database(database.name, database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
         return Pair(database, Message.ERROR_CLEAR)
     }
@@ -126,8 +121,9 @@ fun clear(database: Database): Pair<Database, Message> {
  */
 fun recovery(database: Database): Pair<Database, Message> {
     try {
-        for (mark in database.data)
-            mark.value.use = true
+        database.data.map { it.value.use = true }
+        //for (mark in database.data)
+            //mark.value.use = true
         database.counter = 0
         return Pair(database, Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
@@ -154,14 +150,14 @@ fun log(database: Database, line: String): Message {
  *
  * Загружает базу данных и лог файл.
  */
-fun download(dataFile: File, logFile: File): Pair<Database, Message> {
+fun download(name : String, dataFile: File, logFile: File): Pair<Database, Message> {
     try {
         val json = dataFile.readText()
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
         logFile.writeText("")
-        return Pair(Database("demo", buffer, 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database(name, buffer, 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return Pair(Database("", hashMapOf(), 0, dataFile, logFile), Message.ERROR_DOWNLOAD)
+        return Pair(Database(name, hashMapOf(), 0, dataFile, logFile), Message.ERROR_DOWNLOAD)
     }
 }
 
@@ -187,7 +183,7 @@ fun save(database: Database): Pair<Database, Message> {
 /**
  * Служебная функция.
  *
- * Сохраняет базу данных из оперативной памяти на диск.
+ * Отключает базу данных от пула.
  */
 fun exit(pool: Pool, key: String): Message {
     try {
