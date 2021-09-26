@@ -1,19 +1,22 @@
 // Стандартная библиотека.
-import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 //Собственные пакеты.
 import backend.*
 import frontend.*
-import parser.*
-import style.*
+import parser.Arguments
+import parser.Operation
+import parser.parser
+import style.Message
+import style.report
+import java.io.File
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 internal class TestParser {
 
     @Test
     fun testoperation() {
-        assertEquals(11, Operation.values().size)
+        assertEquals(14, Operation.values().size)
     }
 
     @Test
@@ -29,6 +32,9 @@ internal class TestParser {
         assertEquals(Arguments("f", Operation.SAVE, listOf()), parser("f:save"))
         assertEquals(Arguments("g", Operation.EXIT, listOf()), parser("g:exit"))
         assertEquals(Arguments("", Operation.END, listOf()), parser("end"))
+        assertEquals(Arguments("g", Operation.SIZE, listOf()), parser("g:size"))
+        assertEquals(Arguments("j", Operation.REGEX, listOf("[0-9]")), parser("j:regex:[0-9]"))
+        assertEquals(Arguments("pool", Operation.CREATE, listOf("x", "x.dat", "x.log")), parser("pool:create:x:x.dat:x.log"))
     }
 }
 
@@ -36,8 +42,8 @@ internal class TestFrontend {
 
     @Test
     fun testcheckFile() {
-        assertEquals(true, checkFile(File("demo.dat")))
-        assertEquals(true, checkFile(File("demo.log")))
+        assertEquals(true, checkFile(File("database\\demo\\demo.dat")))
+        assertEquals(true, checkFile(File("database\\demo\\demo.log")))
         assertEquals(false, checkFile(File("demo")))
         assertEquals(false, checkFile(File("xxx.dat")))
         assertEquals(false, checkFile(File("123")))
@@ -89,6 +95,21 @@ internal class TestFrontend {
     }
 
     @Test
+    fun testhandlerRegex() {
+        val pool = Pool(mutableMapOf())
+        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
+        pool.data["pool"] = databaseRoot
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", true))), 0, File(""), File(""))
+        pool.data["demo"] = database
+        val databaseNull = Database("null", hashMapOf(), 0, File(""), File(""))
+        assertEquals("x\n", handlerRegex(pool, database, listOf("x")))
+        assertEquals( "\n", handlerRegex(pool, databaseNull, listOf("1")))
+        assertEquals("demo:" + "\n", handlerRegex(pool, databaseRoot, listOf("1")) )
+        assertEquals( report(Message.INVALID_ARGUMENTS), handlerRegex(pool, databaseNull, listOf("1", "1")) ,)
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerRegex(pool, database, listOf()))
+    }
+
+    @Test
     fun testhandlerClear() {
         val pool = Pool(mutableMapOf())
         val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
@@ -119,16 +140,30 @@ internal class TestFrontend {
     }
 
     @Test
-    fun testhandlerDownload() {
+    fun testhandlerSize() {
         val pool = Pool(mutableMapOf())
         val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
         pool.data["pool"] = databaseRoot
         val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
         pool.data["demo"] = database
         val databaseNull = Database("null", hashMapOf(), 0, File(""), File(""))
+        assertEquals("+1 -1 =0\n", handlerSize(pool, database, listOf()))
+        assertEquals("1\n", handlerSize(pool, databaseRoot, listOf()))
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerSize(pool, databaseRoot, listOf("1")))
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerSize(pool, database, listOf("1", "1")))
+        assertEquals("+0 -0 =0\n", handlerSize(pool, databaseNull, listOf()))
+    }
+
+    @Test
+    fun testhandlerDownload() {
+        val pool = Pool(mutableMapOf())
+        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
+        pool.data["pool"] = databaseRoot
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
+        pool.data["demo"] = database
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerDownload(pool, database, listOf()))
-        assertEquals(report(Message.SUCCESSFUL_TRANSACTION), handlerDownload(pool, databaseRoot, listOf("demo", "demo.dat", "demo.log")))
-        assertEquals(report(Message.ERROR_DOWNLOAD),handlerDownload(pool, databaseRoot, listOf("demo", "demo", "demo.log")))
+        assertEquals(report(Message.SUCCESSFUL_TRANSACTION), handlerDownload(pool, databaseRoot, listOf("demo", "database\\demo\\demo.dat", "database\\demo\\demo.log")))
+        assertEquals(report(Message.ERROR_DOWNLOAD),handlerDownload(pool, databaseRoot, listOf("demo", "database\\demo\\demo", "database\\demo\\demo.log")))
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerDownload(pool, databaseRoot, listOf("1", "1")) ,)
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerDownload(pool, database, listOf("1")))
     }
@@ -161,6 +196,21 @@ internal class TestFrontend {
         assertEquals(report(Message.MISSING_KEY), handlerExit(pool, databaseNull, listOf()))
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerExit(pool, databaseNull, listOf("1", "1")) ,)
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerExit(pool, database, listOf("1")))
+    }
+
+    @Test
+    fun testhandlerCreate() {
+        val pool = Pool(mutableMapOf())
+        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
+        pool.data["pool"] = databaseRoot
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
+        pool.data["demo"] = database
+        val databaseNull = Database("null", hashMapOf(), 0, File(""), File(""))
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerCreate(pool, databaseRoot, listOf("demo", "database\\demo\\demo.dat", "database\\demo\\demo.log")))
+        assertEquals(report(Message.SUCCESSFUL_TRANSACTION), handlerCreate(pool, databaseRoot, listOf("n", "database\\test\\n.dat", "database\\test\\n.log")))
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerCreate(pool, databaseNull, listOf()))
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerCreate(pool, databaseNull, listOf("1", "1")) ,)
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerCreate(pool, database, listOf("1")))
     }
 
     @Test
@@ -205,6 +255,16 @@ internal class TestBackend {
     }
 
     @Test
+    fun testregex() {
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", false)), Pair("y", Mark("y", true))), 1, File(""), File(""))
+        assertEquals(Message.SUCCESSFUL_TRANSACTION, regex(database, "y").second)
+        assertEquals("y\n", regex(database, "y").first)
+        assertEquals("\n", regex(database, "z").first)
+        assertEquals(Message.SUCCESSFUL_TRANSACTION, regex(database, "z").second)
+        assertEquals("y\n", regex(database, "[a-z]").first)
+    }
+
+    @Test
     fun testclear() {
         val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
         assertEquals(Message.SUCCESSFUL_TRANSACTION, clear(database).second)
@@ -226,15 +286,17 @@ internal class TestBackend {
 
     @Test
     fun testdownload() {
-        var buffer = download("demo", File("demo.dat"), File("demo.log"))
+        var buffer = download("demo", File("database\\demo\\demo.dat"), File("database\\demo\\demo.log"))
         assertEquals(Message.SUCCESSFUL_TRANSACTION, buffer.second)
         assertEquals("demo", buffer.first.name)
         assertEquals(0, buffer.first.counter)
+        buffer = download("demo", File("database\\demo\\demo"), File("database\\demo\\demo.log"))
+        assertEquals(Message.ERROR_DOWNLOAD, buffer.second)
     }
 
     @Test
     fun testsave() {
-        var database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File("demo.dat"), File("demo.log"))
+        var database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File("database\\demo\\demo.dat"), File("database\\demo\\demo.log"))
         assertEquals(Message.SUCCESSFUL_TRANSACTION, save(database).second)
         assertEquals(0, save(database).first.counter)
         assertEquals(false, save(database).first.data.containsValue(Mark("x",false)))
@@ -248,12 +310,21 @@ internal class TestBackend {
         val pool = Pool(mutableMapOf())
         val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
         pool.data["pool"] = databaseRoot
-        val database = Database("demo", hashMapOf(Pair("x", Mark("x", true))), 1, File("demo.dat"), File("demo.log"))
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", true))), 1, File("database\\demo\\demo.dat"), File("database\\demo\\demo.log"))
         pool.data["demo"] = database
         assertEquals(Message.SUCCESSFUL_TRANSACTION, exit(pool,database.name))
         assertEquals(1, pool.data.size)
         assertEquals(false, pool.data.contains("demo"))
         assertEquals(Message.ERROR_SAVE, exit(pool, databaseRoot.name))
+    }
+
+    @Test
+    fun testcreate() {
+        assertEquals(Message.SUCCESSFUL_TRANSACTION, create("x", "database\\test\\x.dat", "database\\test\\x.log").second)
+        assertEquals(0, create("y", "database\\test\\y.dat", "database\\test\\y.log").first.counter)
+        assertEquals(0, create("z", "database\\test\\z.dat", "database\\test\\z.log").first.data.size)
+        assertEquals("w", create("w", "database\\test\\w.dat", "database\\test\\w.log").first.name)
+        assertEquals(Message.ERROR_CREATE, create("x", "database\\test\\x.dat", "database\\test\\x.log").second)
     }
 }
 
@@ -261,20 +332,12 @@ internal class TestStyle {
 
     @Test
     fun testmessage() {
-        assertEquals(17, Message.values().size)
+        assertEquals(19, Message.values().size)
     }
 
     @Test
     fun testreport() {
-        assertEquals('\n', report(Message.ERROR_SAVE).last())
-        assertEquals('\n', report(Message.ERROR_READ).last())
-        assertEquals('\n', report(Message.ERROR_WRITE).last())
-        assertEquals('\n', report(Message.ERROR_EXIT).last())
-        assertEquals('\n', report(Message.ERROR_INSERT).last())
-        assertEquals('\n', report(Message.ERROR_DOWNLOAD).last())
-        assertEquals('\n', report(Message.ERROR_DELETE).last())
-        assertEquals('\n', report(Message.ERROR_FIND).last())
-        assertEquals('\n', report(Message.ERROR_INSERT).last())
-        assertEquals('\n', report(Message.ERROR_CLEAR).last())
+        for (message in Message.values())
+            assertEquals('\n', report(message).last())
     }
 }

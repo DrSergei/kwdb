@@ -8,14 +8,15 @@
 package backend
 
 // Стандартная библиотека.
+
+// Собственные пакеты.
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import style.Message
+import style.report
 import java.io.File
-
-// Собственные пакеты.
-import style.*
 
 /**
  * Запись в базе данных.
@@ -104,11 +105,32 @@ fun find(database: Database, key: String): Pair<String, Message> {
 /**
  * Служебная функция.
  *
+ * Ищет значение по ключу.
+ */
+fun regex(database: Database, key: String): Pair<String, Message> {
+    try {
+        val regex = Regex(key)
+        val result = StringBuilder()
+        for (mark in database.data.filter { regex.matches(it.key) && it.value.use })
+            result.append(mark.value.data + "\n")
+        return Pair(result.toString().dropLast(1) + "\n", Message.SUCCESSFUL_TRANSACTION)
+    } catch (e: Exception) {
+        return Pair(report(Message.ERROR_REGEX), Message.ERROR_REGEX)
+    }
+}
+
+/**
+ * Служебная функция.
+ *
  * Очищает базу данных от удаленных значений, перестраивает структуру данных.
  */
 fun clear(database: Database): Pair<Database, Message> {
     try {
-        return Pair(Database(database.name, database.data.filter { it.value.use } as HashMap<String, Mark>, 0, database.dataFile, database.logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database(database.name,
+            database.data.filter { it.value.use } as HashMap<String, Mark>,
+            0,
+            database.dataFile,
+            database.logFile), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
         return Pair(database, Message.ERROR_CLEAR)
     }
@@ -123,7 +145,7 @@ fun recovery(database: Database): Pair<Database, Message> {
     try {
         database.data.map { it.value.use = true }
         //for (mark in database.data)
-            //mark.value.use = true
+        //mark.value.use = true
         database.counter = 0
         return Pair(database, Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
@@ -150,7 +172,7 @@ fun log(database: Database, line: String): Message {
  *
  * Загружает базу данных и лог файл.
  */
-fun download(name : String, dataFile: File, logFile: File): Pair<Database, Message> {
+fun download(name: String, dataFile: File, logFile: File): Pair<Database, Message> {
     try {
         val json = dataFile.readText()
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
@@ -200,5 +222,22 @@ fun exit(pool: Pool, key: String): Message {
         }
     } catch (e: Exception) {
         return Message.ERROR_EXIT
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Создает базу данных.
+ */
+fun create(name: String, pathData: String, pathLog: String): Pair<Database, Message> {
+    try {
+        val dataFile = File(pathData)
+        val logFile = File(pathLog)
+        if (!dataFile.createNewFile() || !logFile.createNewFile())
+            return Pair(Database(name, hashMapOf(), 0, File(""), File("")), Message.ERROR_CREATE)
+        return Pair(Database(name, hashMapOf(), 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
+    } catch (e: Exception) {
+        return Pair(Database(name, hashMapOf(), 0, File(""), File("")), Message.ERROR_CREATE)
     }
 }

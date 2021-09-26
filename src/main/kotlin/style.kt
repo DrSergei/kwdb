@@ -23,7 +23,9 @@ enum class Message {
     ERROR_INSERT, // ошибка при вставке
     ERROR_DELETE, // ошибка при удаление
     ERROR_FIND, // ошибка при поиске
+    ERROR_REGEX, // ошибка при поиске паттерна
     ERROR_EXIT, // ошибка при отключении базы данных
+    ERROR_CREATE, // ошибка при создании
     ERROR_TRANSACTION, // ошибка при обращении к базе данных
     INVALID_ARGUMENTS, // неверные аргументы
     REMOTE_KEY, // ключ удален
@@ -48,7 +50,9 @@ fun report(message: Message): String {
         Message.ERROR_INSERT -> return "Произошла ошибка при вставке, повторите попытку.\n"
         Message.ERROR_DELETE -> return "Произошла ошибка при удалении, повторите поытку.\n"
         Message.ERROR_FIND -> return "Произошла ошибка при поиске, повторите попытку.\n"
+        Message.ERROR_REGEX -> return "Произошла ошибка при поиске паттерна, повторите попытку.\n"
         Message.ERROR_EXIT -> return "Произошла ошибка при отключении, повторите попытку.\n"
+        Message.ERROR_CREATE -> return "Произошла ошибка при создании, повторите попытку.\n"
         Message.ERROR_TRANSACTION -> return "Произошла ошибка при обращеннии к базе данных.\n"
         Message.SUCCESSFUL_TRANSACTION -> return "Успешная операция.\n"
         Message.INVALID_ARGUMENTS -> return "Неверные аргументы.\n"
