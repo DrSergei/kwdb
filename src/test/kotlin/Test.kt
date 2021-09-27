@@ -1,16 +1,10 @@
-// Стандартная библиотека.
-
-//Собственные пакеты.
+// Импорт.
+import java.io.*
+import kotlin.test.*
 import backend.*
 import frontend.*
-import parser.Arguments
-import parser.Operation
-import parser.parser
-import style.Message
-import style.report
-import java.io.File
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import parser.*
+import style.*
 
 internal class TestParser {
 

@@ -5,16 +5,12 @@
  */
 package frontend
 
-// Стандартная библиотека.
-
-// Собственные пакеты.
+// Импорт.
+import java.io.*
 import backend.*
-import parser.Arguments
-import parser.Operation
-import parser.parser
-import style.Message
-import style.report
-import java.io.File
+import cli.*
+import parser.*
+import style.*
 
 /**
  * Служебная функция.
@@ -101,7 +97,7 @@ fun handlerFind(pool: Pool, database: Database, args: List<String>): String {
 /**
  * Служебная функция.
  *
- * Обработчик поиска паттера.
+ * Обработчик поиска паттерна.
  */
 fun handlerRegex(pool: Pool, database: Database, args: List<String>) : String {
     if (args.size == 1 && database.name == "pool") {
@@ -189,10 +185,13 @@ fun handlerDownload(pool: Pool, database: Database, args: List<String>): String 
     if (args.size == 3 && database.name == "pool") {
         val dataFile = File(args[1])
         val logFile = File(args[2])
-        val buffer = download(args[0], dataFile, logFile)
-        if (buffer.second == Message.SUCCESSFUL_TRANSACTION)
-            pool.data[args[0]] = buffer.first
-        return report(buffer.second)
+        if (checkFile(dataFile) && checkFile(logFile)) {
+            val buffer = download(args[0], dataFile, logFile)
+            if (buffer.second == Message.SUCCESSFUL_TRANSACTION)
+                pool.data[args[0]] = buffer.first
+            return report(buffer.second)
+        } else
+            return report(Message.INVALID_ARGUMENTS)
     } else
         return report(Message.INVALID_ARGUMENTS)
 }
@@ -268,27 +267,54 @@ fun handlerError(): String {
     return report(Message.INVALID_ARGUMENTS)
 }
 
-fun distributionInput(pool: Pool, arguments: Arguments): String {
+/**
+ * Служебная функция.
+ *
+ * Выбирает нужный обработчик для каждой операции с учетом режима работы.
+ */
+fun distributionInput(pool: Pool, arguments: Arguments, mode: Mode): String {
     val database = pool.data[arguments.name]
     if (arguments.operation == Operation.NULL)
         return ""
     if (database != null) {
         log(database, listOf(arguments.operation.name, arguments.arg).joinToString(":"))
-        when (arguments.operation) {
-            Operation.INSERT -> return handlerInsert(pool, database, arguments.arg)
-            Operation.DELETE -> return handlerDelete(pool, database, arguments.arg)
-            Operation.FIND -> return handlerFind(pool, database, arguments.arg)
-            Operation.REGEX -> return handlerRegex(pool, database, arguments.arg)
-            Operation.CLEAR -> return handlerClear(pool, database, arguments.arg)
-            Operation.RECOVERY -> return handlerRecovery(pool, database, arguments.arg)
-            Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
-            Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
-            Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
-            Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
-            Operation.CREATE -> return handlerCreate(pool, database, arguments.arg)
-            Operation.ERROR -> return handlerError()
-            Operation.NULL -> return ""
-            Operation.END -> return ""
+        when (mode) {
+            Mode.READ -> {
+                when (arguments.operation) {
+                    Operation.INSERT -> return handlerError()
+                    Operation.DELETE -> return handlerError()
+                    Operation.FIND -> return handlerFind(pool, database, arguments.arg)
+                    Operation.REGEX -> return handlerRegex(pool, database, arguments.arg)
+                    Operation.CLEAR -> return handlerError()
+                    Operation.RECOVERY -> return handlerError()
+                    Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
+                    Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
+                    Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
+                    Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
+                    Operation.CREATE -> return handlerError()
+                    Operation.ERROR -> return handlerError()
+                    Operation.NULL -> return ""
+                    Operation.END -> return ""
+                }
+            }
+            Mode.WRITE -> {
+                when (arguments.operation) {
+                    Operation.INSERT -> return handlerInsert(pool, database, arguments.arg)
+                    Operation.DELETE -> return handlerDelete(pool, database, arguments.arg)
+                    Operation.FIND -> return handlerFind(pool, database, arguments.arg)
+                    Operation.REGEX -> return handlerRegex(pool, database, arguments.arg)
+                    Operation.CLEAR -> return handlerClear(pool, database, arguments.arg)
+                    Operation.RECOVERY -> return handlerRecovery(pool, database, arguments.arg)
+                    Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
+                    Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
+                    Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
+                    Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
+                    Operation.CREATE -> return handlerCreate(pool, database, arguments.arg)
+                    Operation.ERROR -> return handlerError()
+                    Operation.NULL -> return ""
+                    Operation.END -> return ""
+                }
+            }
         }
     } else
         return report(Message.INVALID_ARGUMENTS)
@@ -299,16 +325,34 @@ fun distributionInput(pool: Pool, arguments: Arguments): String {
  *
  * Цикл общения с пользователем(обработка ввода и работа с базой данных).
  */
-fun input() {
+fun inputConsole(mode: Mode) {
     val pool = Pool(mutableMapOf())
     pool.data["pool"] = Database("pool", hashMapOf(), 0, File(""), File(""))
-    //pool.data["demo"] = download("demo", File("demo.dat"), File("demo.log")).first
     var request: String? = ""
     while (request != null) {
         val arguments = parser(request)
         if (arguments.operation == Operation.END)
             return
-        print(distributionInput(pool, arguments))
+        print(distributionInput(pool, arguments, mode))
         request = readLine()
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Цикл общения с пользователем(обработка ввода и работа с базой данных).
+ */
+fun inputFile(name: String, mode : Mode) {
+    val pool = Pool(mutableMapOf())
+    pool.data["pool"] = Database("pool", hashMapOf(), 0, File(""), File(""))
+    val file = File(name)
+    if (file.exists() && file.canRead()) {
+        for (request in file.readLines()) {
+            val arguments = parser(request)
+            if (arguments.operation == Operation.END)
+                return
+            print(distributionInput(pool, arguments, mode))
+        }
     }
 }

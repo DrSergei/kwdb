@@ -7,16 +7,13 @@
  */
 package backend
 
-// Стандартная библиотека.
-
-// Собственные пакеты.
+// Импорт.
+import java.io.*
+import kotlinx.serialization.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import style.Message
-import style.report
-import java.io.File
+import kotlinx.serialization.json.*
+import style.*
+
 
 /**
  * Запись в базе данных.

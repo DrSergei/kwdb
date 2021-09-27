@@ -5,9 +5,7 @@
  */
 package style
 
-// Стандартная библиотека
-
-// Собственная библиотека
+// Импорт.
 
 /**
  * Типы сообщений.
@@ -48,12 +46,12 @@ fun report(message: Message): String {
         Message.ERROR_CLEAR -> return "Произошла ошибка при очистке, повторите попытку.\n"
         Message.ERROR_DOWNLOAD -> return "Произошла ошибка при логгировании, повторите попытку.\n"
         Message.ERROR_INSERT -> return "Произошла ошибка при вставке, повторите попытку.\n"
-        Message.ERROR_DELETE -> return "Произошла ошибка при удалении, повторите поытку.\n"
+        Message.ERROR_DELETE -> return "Произошла ошибка при удалении, повторите попытку.\n"
         Message.ERROR_FIND -> return "Произошла ошибка при поиске, повторите попытку.\n"
         Message.ERROR_REGEX -> return "Произошла ошибка при поиске паттерна, повторите попытку.\n"
         Message.ERROR_EXIT -> return "Произошла ошибка при отключении, повторите попытку.\n"
         Message.ERROR_CREATE -> return "Произошла ошибка при создании, повторите попытку.\n"
-        Message.ERROR_TRANSACTION -> return "Произошла ошибка при обращеннии к базе данных.\n"
+        Message.ERROR_TRANSACTION -> return "Произошла ошибка при обращении к базе данных.\n"
         Message.SUCCESSFUL_TRANSACTION -> return "Успешная операция.\n"
         Message.INVALID_ARGUMENTS -> return "Неверные аргументы.\n"
         Message.REMOTE_KEY -> return "Ключ удален, но память не очищена.\n"
