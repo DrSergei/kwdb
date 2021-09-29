@@ -1,7 +1,7 @@
 /**
  *  Пакет для шифрования.
  *
- *  Реализует xor шифрование.
+ *  Реализует шифр Вернама с построением полного ключа по пользовательскому.
  */
 package crypto
 
@@ -16,7 +16,7 @@ fun encode(key : String, message : String) : String {
     if (key == "")
         return message
     val result = StringBuilder()
-    for (index in message.indices){
+    for (index in message.indices) {
         result.append((message[index].code xor key[index % key.length].code).toChar())
     }
     return result.toString()
@@ -31,7 +31,7 @@ fun decode(key : String, message : String) : String {
     if (key == "")
         return message
     val result = StringBuilder()
-    for (index in message.indices){
+    for (index in message.indices) {
         result.append((message[index].code xor key[index % key.length].code).toChar())
     }
     return result.toString()

@@ -20,8 +20,9 @@ enum class Message {
     ERROR_DOWNLOAD, // ошибка при загрузке
     ERROR_INSERT, // ошибка при вставке
     ERROR_DELETE, // ошибка при удаление
+    ERROR_DELETE_ALL, // ошибка при удаление паттерна
     ERROR_FIND, // ошибка при поиске
-    ERROR_REGEX, // ошибка при поиске паттерна
+    ERROR_FIND_ALL, // ошибка при поиске паттерна
     ERROR_EXIT, // ошибка при отключении базы данных
     ERROR_CREATE, // ошибка при создании
     ERROR_TRANSACTION, // ошибка при обращении к базе данных
@@ -31,7 +32,7 @@ enum class Message {
     MISSING_FILE, // нет файла
     INVALID_EXTENSION, // неправильное расширение
     ERROR_READ, // запрещено чтение
-    ERROR_WRITE // запрещена запись
+    ERROR_WRITE, // запрещена запись
 }
 
 /**
@@ -47,8 +48,9 @@ fun report(message: Message): String {
         Message.ERROR_DOWNLOAD -> return "Произошла ошибка при загрузке, повторите попытку.\n"
         Message.ERROR_INSERT -> return "Произошла ошибка при вставке, повторите попытку.\n"
         Message.ERROR_DELETE -> return "Произошла ошибка при удалении, повторите попытку.\n"
+        Message.ERROR_DELETE_ALL -> return "Произошла ошибка при удалении паттерна, повторите попытку.\n"
         Message.ERROR_FIND -> return "Произошла ошибка при поиске, повторите попытку.\n"
-        Message.ERROR_REGEX -> return "Произошла ошибка при поиске паттерна, повторите попытку.\n"
+        Message.ERROR_FIND_ALL -> return "Произошла ошибка при поиске паттерна, повторите попытку.\n"
         Message.ERROR_EXIT -> return "Произошла ошибка при отключении, повторите попытку.\n"
         Message.ERROR_CREATE -> return "Произошла ошибка при создании, повторите попытку.\n"
         Message.ERROR_TRANSACTION -> return "Произошла ошибка при обращении к базе данных.\n"

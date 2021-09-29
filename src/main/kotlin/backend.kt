@@ -87,6 +87,24 @@ fun delete(database: Database, key: String): Message {
  *
  * Ищет значение по ключу.
  */
+fun deleteAll(database: Database, key: String): Message {
+    try {
+        val regex = Regex(key)
+        database.data.map {
+            if (regex.matches(it.key))
+                it.value.use = false
+        }
+        return Message.SUCCESSFUL_TRANSACTION
+    } catch (e: Exception) {
+        return Message.ERROR_DELETE_ALL
+    }
+}
+
+/**
+ * Служебная функция.
+ *
+ * Ищет значение по ключу.
+ */
 fun find(database: Database, key: String): Pair<String, Message> {
     try {
         val mark = database.data[key]
@@ -106,7 +124,7 @@ fun find(database: Database, key: String): Pair<String, Message> {
  *
  * Ищет значение по ключу.
  */
-fun regex(database: Database, key: String): Pair<String, Message> {
+fun findAll(database: Database, key: String): Pair<String, Message> {
     try {
         val regex = Regex(key)
         val result = StringBuilder()
@@ -114,7 +132,7 @@ fun regex(database: Database, key: String): Pair<String, Message> {
             result.append(mark.value.data + "\n")
         return Pair(result.toString().dropLast(1) + "\n", Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return Pair(report(Message.ERROR_REGEX), Message.ERROR_REGEX)
+        return Pair(report(Message.ERROR_FIND_ALL), Message.ERROR_FIND_ALL)
     }
 }
 

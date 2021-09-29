@@ -1,3 +1,13 @@
-pool:download:demo:database/demo/demo.dat:database/demo/demo.log
-pool:find:x
-pool:insert:y:y
+pool:create:yyy:database/test/yyy.dat:database/test/yyy.log:yyy
+yyy:insert:x:x
+yyy:insert:y:y
+yyy:insert:z:y
+yyy:insert:c:y
+yyy:insert:v:y
+yyy:insert:f:y
+yyy:insert:g:y
+yyy:insert:h:y
+yyy:insert:k:y
+yyy:exit
+pool:download:yyy:database/test/yyy.dat:database/test/yyy.log:yyy
+yyy:print
