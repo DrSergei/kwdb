@@ -1,7 +1,6 @@
 // Импорт.
 import cli.*
 import kotlin.system.*
-//import javax.crypto.Cipher
 
 fun main(args: Array<String>) {
     val time = measureTimeMillis { // замер времени работы программы

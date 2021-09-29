@@ -8,11 +8,12 @@
 package backend
 
 // Импорт.
-import java.io.*
+import crypto.*
 import kotlinx.serialization.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import style.*
+import java.io.*
 
 
 /**
@@ -34,6 +35,7 @@ data class Database(
     var counter: Int,
     val dataFile: File,
     val logFile: File,
+    val key: String = ""
 )
 
 /**
@@ -169,14 +171,14 @@ fun log(database: Database, line: String): Message {
  *
  * Загружает базу данных и лог файл.
  */
-fun download(name: String, dataFile: File, logFile: File): Pair<Database, Message> {
+fun download(name: String, dataFile: File, logFile: File, key: String = ""): Pair<Database, Message> {
     try {
-        val json = dataFile.readText()
+        val json = decode(key, dataFile.readText())
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
         logFile.writeText("")
-        return Pair(Database(name, buffer, 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database(name, buffer, 0, dataFile, logFile, key), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return Pair(Database(name, hashMapOf(), 0, dataFile, logFile), Message.ERROR_DOWNLOAD)
+        return Pair(Database(name, hashMapOf(), 0, dataFile, logFile, key), Message.ERROR_DOWNLOAD)
     }
 }
 
@@ -190,7 +192,7 @@ fun save(database: Database): Pair<Database, Message> {
         val buffer = clear(database)
         if (buffer.second == Message.SUCCESSFUL_TRANSACTION) {
             val json = Json.encodeToString(buffer.first.data)
-            database.dataFile.writeText(json)
+            database.dataFile.writeText(encode(database.key, json))
             return Pair(buffer.first, Message.SUCCESSFUL_TRANSACTION)
         } else
             return Pair(buffer.first, Message.ERROR_CLEAR)
@@ -227,14 +229,14 @@ fun exit(pool: Pool, key: String): Message {
  *
  * Создает базу данных.
  */
-fun create(name: String, pathData: String, pathLog: String): Pair<Database, Message> {
+fun create(name: String, pathData: String, pathLog: String, key: String = ""): Pair<Database, Message> {
     try {
         val dataFile = File(pathData)
         val logFile = File(pathLog)
         if (!dataFile.createNewFile() || !logFile.createNewFile())
             return Pair(Database(name, hashMapOf(), 0, File(""), File("")), Message.ERROR_CREATE)
-        return Pair(Database(name, hashMapOf(), 0, dataFile, logFile), Message.SUCCESSFUL_TRANSACTION)
+        return Pair(Database(name, hashMapOf(), 0, dataFile, logFile, key), Message.SUCCESSFUL_TRANSACTION)
     } catch (e: Exception) {
-        return Pair(Database(name, hashMapOf(), 0, File(""), File("")), Message.ERROR_CREATE)
+        return Pair(Database(name, hashMapOf(), 0, File(""), File(""), key), Message.ERROR_CREATE)
     }
 }

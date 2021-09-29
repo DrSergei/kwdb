@@ -44,7 +44,7 @@ fun report(message: Message): String {
         Message.ERROR_SAVE -> return "Произошла ошибка при сохранении, повторите попытку.\n"
         Message.ERROR_LOG -> return "Произошла ошибка при логгировании, повторите попытку.\n"
         Message.ERROR_CLEAR -> return "Произошла ошибка при очистке, повторите попытку.\n"
-        Message.ERROR_DOWNLOAD -> return "Произошла ошибка при логгировании, повторите попытку.\n"
+        Message.ERROR_DOWNLOAD -> return "Произошла ошибка при загрузке, повторите попытку.\n"
         Message.ERROR_INSERT -> return "Произошла ошибка при вставке, повторите попытку.\n"
         Message.ERROR_DELETE -> return "Произошла ошибка при удалении, повторите попытку.\n"
         Message.ERROR_FIND -> return "Произошла ошибка при поиске, повторите попытку.\n"

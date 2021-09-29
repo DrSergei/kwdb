@@ -1,10 +1,27 @@
 // Импорт.
-import java.io.*
-import kotlin.test.*
 import backend.*
+import crypto.*
 import frontend.*
 import parser.*
 import style.*
+import java.io.*
+import kotlin.test.*
+
+internal class TestCrypto {
+    @Test
+    fun testcode() {
+        assertEquals("hihihi", decode("abc", encode("abc", "hihihi")))
+        assertEquals("kotlin", decode("abc123", encode("abc123", "kotlin")))
+        assertEquals("java", decode("abcdef", encode("abcdef", "java")))
+        assertEquals("c++", decode("0000", encode("0000", "c++")))
+        assertEquals("jetbrains", decode("26344362", encode("26344362", "jetbrains")))
+        assertEquals("google", decode("xxx", encode("xxx", "google")))
+        assertEquals("spbu", decode("123456", encode("123456", "spbu")))
+        assertEquals("my name is sergei", decode("1111", encode("111", "my name is sergei")))
+        assertEquals("1234567890", decode("egsk", encode("egsk", "1234567890")))
+        assertEquals("20/20 points", decode("fff", encode("fff", "20/20 points")))
+    }
+}
 
 internal class TestParser {
 
@@ -151,13 +168,13 @@ internal class TestFrontend {
     @Test
     fun testhandlerDownload() {
         val pool = Pool(mutableMapOf())
-        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
+        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File("x.log"))
         pool.data["pool"] = databaseRoot
         val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
         pool.data["demo"] = database
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerDownload(pool, database, listOf()))
         assertEquals(report(Message.SUCCESSFUL_TRANSACTION), handlerDownload(pool, databaseRoot, listOf("demo", "database\\demo\\demo.dat", "database\\demo\\demo.log")))
-        assertEquals(report(Message.ERROR_DOWNLOAD),handlerDownload(pool, databaseRoot, listOf("demo", "database\\demo\\demo", "database\\demo\\demo.log")))
+        assertEquals(report(Message.INVALID_ARGUMENTS),handlerDownload(pool, databaseRoot, listOf("demo", "database\\demo\\demo", "database\\demo\\demo.log")))
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerDownload(pool, databaseRoot, listOf("1", "1")) ,)
         assertEquals(report(Message.INVALID_ARGUMENTS), handlerDownload(pool, database, listOf("1")))
     }

@@ -11,13 +11,10 @@ repositories {
     mavenCentral()
 }
 
-val kryptoVersion = "2.2.0"
-
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
-    implementation("com.soywiz.korlibs.krypto:krypto-jvm:$kryptoVersion")
     testImplementation(kotlin("test"))
 }
 
