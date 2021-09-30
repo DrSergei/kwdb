@@ -23,7 +23,7 @@ data class Arguments(val name: String, val operation: Operation, val arg: List<S
 enum class Operation {
     INSERT, DELETE, DELETE_ALL, FIND, FIND_ALL, CLEAR, RECOVERY, SIZE, PRINT, // операции с самой базой данной
     // (вставка, удаление, удаление по паттерну, поиск, поиск паттерна, очистка, восстановление, размер, полный список)
-    SAVE, DOWNLOAD, EXIT, CREATE, // операции с диком
+    SAVE, DOWNLOAD, EXIT, CREATE, // операции с диском
     // (сохранение, загрузка, выход, создание)
     ERROR, NULL, END // служебные
     // (ошибка, пустой ввод, завершение работы)
