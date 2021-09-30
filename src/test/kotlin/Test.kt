@@ -1,3 +1,5 @@
+// Модульные тесты ко всем файлам.
+
 // Импорт.
 import backend.*
 import crypto.*
@@ -11,16 +13,26 @@ internal class TestCrypto {
 
     @Test
     fun testcode() {
-        assertEquals("hihihi", decode("abc", encode("abc", "hihihi")))
-        assertEquals("kotlin", decode("abc123", encode("abc123", "kotlin")))
-        assertEquals("java", decode("abcdef", encode("abcdef", "java")))
-        assertEquals("c++", decode("0000", encode("0000", "c++")))
-        assertEquals("jetbrains", decode("26344362", encode("26344362", "jetbrains")))
-        assertEquals("google", decode("xxx", encode("xxx", "google")))
-        assertEquals("spbu", decode("123456", encode("123456", "spbu")))
-        assertEquals("my name is sergei", decode("111", encode("111", "my name is sergei")))
-        assertEquals("1234567890", decode("egsk", encode("egsk", "1234567890")))
-        assertEquals("20/20 points", decode("fff", encode("fff", "20/20 points")))
+        assertEquals("hihihi", decode("abc",
+            encode("abc", "hihihi".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("kotlin", decode("abc123",
+            encode("abc123", "kotlin".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("java", decode("abcdef",
+            encode("abcdef", "java".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("c++", decode("0000",
+            encode("0000", "c++".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("jetbrains", decode("26344362",
+            encode("26344362", "jetbrains".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("google", decode("xxx",
+            encode("xxx", "google".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("spbu", decode("123456",
+            encode("123456", "spbu".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("my name is sergei", decode("111",
+            encode("111", "my name is sergei".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("1234567890", decode("egsk",
+            encode("egsk", "1234567890".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
+        assertEquals("20/20 points", decode("fff",
+            encode("fff", "20/20 points".toByteArray(charset("utf-8")))).toString(charset("utf-8")))
     }
 }
 

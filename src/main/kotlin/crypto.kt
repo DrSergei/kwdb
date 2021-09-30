@@ -5,6 +5,9 @@
  */
 package crypto
 
+import kotlin.experimental.*
+import kotlin.random.*
+
 // Импорт.
 
 /**
@@ -12,14 +15,15 @@ package crypto
  *
  * Кодирует строку, полученным ключом.
  */
-fun encode(key : String, message : String) : String {
+fun encode(key : String, message : ByteArray) : ByteArray {
     if (key == "")
         return message
-    val result = StringBuilder()
+    val result = ByteArray(message.size)
+    val random = Random(key.sumOf { it.code }) // ключ строится генератором случайных чисел по xor символов пароля
     for (index in message.indices) {
-        result.append((message[index].code xor key[index % key.length].code).toChar())
+        result[index] = message[index].xor(random.nextBytes(1).first())
     }
-    return result.toString()
+    return result
 }
 
 /**
@@ -27,12 +31,13 @@ fun encode(key : String, message : String) : String {
  *
  * Раскодирует строку, полученным ключом.
  */
-fun decode(key : String, message : String) : String {
+fun decode(key : String, message : ByteArray) : ByteArray {
     if (key == "")
         return message
-    val result = StringBuilder()
+    val result = ByteArray(message.size)
+    val random = Random(key.sumOf { it.code }) // ключ строится генератором случайных чисел по xor символов пароля
     for (index in message.indices) {
-        result.append((message[index].code xor key[index % key.length].code).toChar())
+        result[index] = message[index].xor(random.nextBytes(1).first())
     }
-    return result.toString()
+    return result
 }

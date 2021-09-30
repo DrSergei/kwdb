@@ -31,13 +31,13 @@ fun prepareArgs(args: Array<String>) {
     try {
         val parser = ArgParser("kvdb")
         val input by parser.option(ArgType.String, shortName = "i", description = "Input file(txt file)")
-        val mode by parser.option(ArgType.Choice<Mode>(), shortName = "m", description = "Mode").default(Mode.READ)
+        val mode by parser.option(ArgType.Choice<Mode>(), shortName = "m", description = "Operating mode").default(Mode.READ)
         parser.parse(args)
         if (input != null)
             inputFile(input.toString(), mode)
         else
             inputConsole(mode)
     } catch (e: Exception) {
-        print(report(INVALID_ARGUMENTS))
+        println(report(INVALID_ARGUMENTS))
     }
 }

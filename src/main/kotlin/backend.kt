@@ -191,7 +191,7 @@ fun log(database: Database, line: String): Message {
  */
 fun download(name: String, dataFile: File, logFile: File, key: String = ""): Pair<Database, Message> {
     try {
-        val json = decode(key, dataFile.readText())
+        val json = decode(key, dataFile.readBytes()).toString(charset("utf-8"))
         val buffer = Json.decodeFromString<HashMap<String, Mark>>(json)
         logFile.writeText("")
         return Pair(Database(name, buffer, 0, dataFile, logFile, key), Message.SUCCESSFUL_TRANSACTION)
@@ -210,7 +210,7 @@ fun save(database: Database): Pair<Database, Message> {
         val buffer = clear(database)
         if (buffer.second == Message.SUCCESSFUL_TRANSACTION) {
             val json = Json.encodeToString(buffer.first.data)
-            database.dataFile.writeText(encode(database.key, json))
+            database.dataFile.writeBytes(encode(database.key, json.toByteArray(charset("utf-8"))))
             return Pair(buffer.first, Message.SUCCESSFUL_TRANSACTION)
         } else
             return Pair(buffer.first, Message.ERROR_CLEAR)
