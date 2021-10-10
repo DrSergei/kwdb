@@ -43,17 +43,18 @@ fun checkFile(file: File): Boolean {
  * Обработчик операции вставки.
  */
 fun handlerInsert(pool: Pool, database: Database, args: List<String>): String {
-    if (args.size == 2 && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool")
-                result.append("${it.value.name}:" + report(insert(it.value, args[0], args[1])))
+    when {
+        (args.size == 2 && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool")
+                    result.append("${it.value.name}:" + report(insert(it.value, args[0], args[1])))
+            }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.size == 2)
-        return report(insert(database, args[0], args[1]))
-    else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.size == 2) -> return report(insert(database, args[0], args[1]))
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -62,17 +63,18 @@ fun handlerInsert(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик операции удаления.
  */
 fun handlerDelete(pool: Pool, database: Database, args: List<String>): String {
-    if (args.size == 1 && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool")
-                result.append("${it.value.name}:" + report(delete(it.value, args[0])))
+    when {
+        (args.size == 1 && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool")
+                    result.append("${it.value.name}:" + report(delete(it.value, args[0])))
+            }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.size == 1)
-        return report(delete(database, args[0]))
-    else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.size == 1) -> return report(delete(database, args[0]))
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -81,17 +83,18 @@ fun handlerDelete(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик операции удаления.
  */
 fun handlerDeleteAll(pool: Pool, database: Database, args: List<String>): String {
-    if (args.size == 1 && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool")
-                result.append("${it.value.name}: " + report(deleteAll(it.value, args[0])))
+    when {
+        (args.size == 1 && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool")
+                    result.append("${it.value.name}: " + report(deleteAll(it.value, args[0])))
+            }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.size == 1)
-        return report(deleteAll(database, args[0]))
-    else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.size == 1) -> return report(deleteAll(database, args[0]))
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -100,17 +103,18 @@ fun handlerDeleteAll(pool: Pool, database: Database, args: List<String>): String
  * Обработчик операции поиска.
  */
 fun handlerFind(pool: Pool, database: Database, args: List<String>): String {
-    if (args.size == 1 && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool")
-                result.append("${it.value.name}: " + find(it.value, args[0]).first)
+    when {
+        (args.size == 1 && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool")
+                    result.append("${it.value.name}: " + find(it.value, args[0]).first)
+            }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.size == 1)
-        return find(database, args[0]).first
-    else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.size == 1) -> return  find(database, args[0]).first
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -119,17 +123,18 @@ fun handlerFind(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик поиска паттерна.
  */
 fun handlerFindAll(pool: Pool, database: Database, args: List<String>) : String {
-    if (args.size == 1 && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool")
-                result.append("${it.value.name}: " + findAll(it.value, args[0]).first)
+    when {
+        (args.size == 1 && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool")
+                    result.append("${it.value.name}: " + findAll(it.value, args[0]).first)
+            }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.size == 1) {
-        return findAll(database, args[0]).first
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.size == 1) -> return findAll(database, args[0]).first
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -138,22 +143,25 @@ fun handlerFindAll(pool: Pool, database: Database, args: List<String>) : String 
  * Обработчик операции очистки.
  */
 fun handlerClear(pool: Pool, database: Database, args: List<String>): String {
-    if (args.isEmpty() && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool") {
-                val buffer = clear(it.value)
-                pool.data[it.value.name] = buffer.first
-                result.append("${it.value.name}: " + report(buffer.second))
+    when {
+        (args.isEmpty() && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool") {
+                    val buffer = clear(it.value)
+                    pool.data[it.value.name] = buffer.first
+                    result.append("${it.value.name}: " + report(buffer.second))
+                }
             }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.isEmpty()) {
-        val buffer = clear(database)
-        pool.data[database.name] = buffer.first
-        return report(buffer.second)
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.isEmpty()) -> {
+            val buffer = clear(database)
+            pool.data[database.name] = buffer.first
+            return report(buffer.second)
+        }
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -162,38 +170,44 @@ fun handlerClear(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик операции восстановления.
  */
 fun handlerRecovery(pool: Pool, database: Database, args: List<String>): String {
-    if (args.isEmpty() && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if(it.key != "pool") {
-                val buffer = recovery(it.value)
-                pool.data[it.value.name] = buffer.first
-                result.append("${it.value.name}: " + report(buffer.second))
+    when {
+        (args.isEmpty() && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool") {
+                    val buffer = recovery(it.value)
+                    pool.data[it.value.name] = buffer.first
+                    result.append("${it.value.name}: " + report(buffer.second))
+                }
             }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.isEmpty()) {
-        val buffer = recovery(database)
-        pool.data[database.name] = buffer.first
-        return report(buffer.second)
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.isEmpty()) -> {
+            val buffer = recovery(database)
+            pool.data[database.name] = buffer.first
+            return report(buffer.second)
+        }
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 fun handlerPrint(pool : Pool, database: Database, args: List<String>) : String {
-    if (args.isEmpty() && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if(it.key != "pool")
-                result.append(it.key + "\n")
+    when {
+        (args.isEmpty() && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if(it.key != "pool")
+                    result.append(it.key + "\n")
+            }
+            return result.toString().dropLast(1) + "\n"
         }
-        return result.toString().dropLast(1) + "\n"
-    } else if (args.isEmpty()) {
-        val result = StringBuilder()
-        database.data.map { result.append(it.key + ":" + it.value.data + "\n") }
-        return result.toString().dropLast(1) + "\n"
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.isEmpty()) -> {
+            val result = StringBuilder()
+            database.data.map { result.append(it.key + ":" + it.value.data + "\n") }
+            return result.toString().dropLast(1) + "\n"
+        }
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 /**
  * Служебная функция.
@@ -201,12 +215,11 @@ fun handlerPrint(pool : Pool, database: Database, args: List<String>) : String {
  * Обработчик операции запроса размера записи.
  */
 fun handlerSize(pool : Pool, database: Database, args: List<String>) : String {
-    if (args.isEmpty() && database.name == "pool")
-        return "${pool.data.size - 1}\n"
-    else if (args.isEmpty())
-        return "+${database.data.size} -${database.counter} =${database.data.size - database.counter}\n"
-    else
-        return report(Message.INVALID_ARGUMENTS)
+    when {
+        (args.isEmpty() && database.name == "pool") -> return "${pool.data.size - 1}\n"
+        (args.isEmpty()) -> return "+${database.data.size} -${database.counter} =${database.data.size - database.counter}\n"
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 
@@ -216,18 +229,19 @@ fun handlerSize(pool : Pool, database: Database, args: List<String>) : String {
  * Обработчик операции загрузки базы данных.
  */
 fun handlerDownload(pool: Pool, database: Database, args: List<String>): String {
-    if (args.size == 4 && database.name == "pool") {
-        val dataFile = File(args[1])
-        val logFile = File(args[2])
-        if (checkFile(dataFile) && checkFile(logFile)) {
+    when {
+        (args.size == 4 && database.name == "pool") -> {
+            val dataFile = File(args[1])
+            val logFile = File(args[2])
+            if (!(checkFile(dataFile) && checkFile(logFile)))
+                return report(Message.INVALID_ARGUMENTS)
             val buffer = download(args[0], dataFile, logFile, args[3])
             if (buffer.second == Message.SUCCESSFUL_TRANSACTION)
                 pool.data[args[0]] = buffer.first
             return report(buffer.second)
-        } else
-            return report(Message.INVALID_ARGUMENTS)
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        }
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -236,22 +250,25 @@ fun handlerDownload(pool: Pool, database: Database, args: List<String>): String 
  * Обработчик операции сохранения базы данных.
  */
 fun handlerSave(pool: Pool, database: Database, args: List<String>): String {
-    if (args.isEmpty() && database.name == "pool") {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool") {
-                val buffer = save(it.value)
-                pool.data[it.value.name] = buffer.first
-                result.append("${it.value.name}:" + report(buffer.second))
+    when {
+        (args.isEmpty() && database.name == "pool") -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool") {
+                    val buffer = save(it.value)
+                    pool.data[it.value.name] = buffer.first
+                    result.append("${it.value.name}:" + report(buffer.second))
+                }
             }
+            return result.toString()
         }
-        return result.toString()
-    } else if (args.isEmpty()) {
-        val buffer = save(database)
-        pool.data[database.name] = buffer.first
-        return report(buffer.second)
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.isEmpty()) -> {
+            val buffer = save(database)
+            pool.data[database.name] = buffer.first
+            return report(buffer.second)
+        }
+        else -> return report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -260,19 +277,20 @@ fun handlerSave(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик операции выхода из базы данных или пула.
  */
 fun handlerExit(pool: Pool, database: Database, args: List<String>): String {
-    if (database.name == "pool" && args.isEmpty()) {
-        val result = StringBuilder()
-        pool.data.map {
-            if (it.key != "pool")
-                result.append("${it.value.name}:" + report(save(it.value).second))
+    return when {
+        (database.name == "pool" && args.isEmpty()) -> {
+            val result = StringBuilder()
+            pool.data.map {
+                if (it.key != "pool")
+                    result.append("${it.value.name}:" + report(save(it.value).second))
+            }
+            pool.data.clear()
+            pool.data["pool"] = Database("pool", hashMapOf(), 0, File(""), File(""))
+            result.toString()
         }
-        pool.data.clear()
-        pool.data["pool"] = Database("pool", hashMapOf(), 0, File(""), File(""))
-        return result.toString()
-    } else if (args.isEmpty())
-        return report(exit(pool, database.name))
-    else
-        return report(Message.INVALID_ARGUMENTS)
+        (args.isEmpty()) -> report(exit(pool, database.name))
+        else -> report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -281,15 +299,16 @@ fun handlerExit(pool: Pool, database: Database, args: List<String>): String {
  * Обработчик операции создания базы данных.
  */
 fun handlerCreate(pool: Pool, database: Database, args: List<String>) : String {
-    if (args.size == 4 && database.name == "pool" && pool.data[args[0]] == null) {
-        val buffer = create(args[0], args[1], args[2], args[3])
-        if (buffer.second == Message.SUCCESSFUL_TRANSACTION)
+    return when {
+        (args.size == 4 && database.name == "pool" && pool.data[args[0]] == null) -> {
+            val buffer = create(args[0], args[1], args[2], args[3])
+            if (buffer.second != Message.SUCCESSFUL_TRANSACTION)
+                report(Message.ERROR_CREATE)
             pool.data[buffer.first.name] = buffer.first
-        else
-            return report(Message.ERROR_CREATE)
-        return report(buffer.second)
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+            report(buffer.second)
+        }
+        else -> report(Message.INVALID_ARGUMENTS)
+    }
 }
 
 /**
@@ -310,52 +329,52 @@ fun distributionInput(pool: Pool, arguments: Arguments, mode: Mode): String {
     val database = pool.data[arguments.name]
     if (arguments.operation == Operation.NULL)
         return ""
-    if (database != null) {
-        log(database, listOf(arguments.operation.name, arguments.arg).joinToString(":"))
-        when (mode) {
-            Mode.READ -> {
-                when (arguments.operation) {
-                    Operation.INSERT -> return handlerError()
-                    Operation.DELETE -> return handlerError()
-                    Operation.DELETE_ALL -> return handlerError()
-                    Operation.FIND -> return handlerFind(pool, database, arguments.arg)
-                    Operation.FIND_ALL -> return handlerFindAll(pool, database, arguments.arg)
-                    Operation.CLEAR -> return handlerError()
-                    Operation.RECOVERY -> return handlerError()
-                    Operation.PRINT -> return handlerPrint(pool, database, arguments.arg)
-                    Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
-                    Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
-                    Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
-                    Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
-                    Operation.CREATE -> return handlerError()
-                    Operation.ERROR -> return handlerError()
-                    Operation.NULL -> return ""
-                    Operation.END -> return ""
-                }
-            }
-            Mode.WRITE -> {
-                when (arguments.operation) {
-                    Operation.INSERT -> return handlerInsert(pool, database, arguments.arg)
-                    Operation.DELETE -> return handlerDelete(pool, database, arguments.arg)
-                    Operation.DELETE_ALL -> return handlerDeleteAll(pool, database, arguments.arg)
-                    Operation.FIND -> return handlerFind(pool, database, arguments.arg)
-                    Operation.FIND_ALL -> return handlerFindAll(pool, database, arguments.arg)
-                    Operation.CLEAR -> return handlerClear(pool, database, arguments.arg)
-                    Operation.RECOVERY -> return handlerRecovery(pool, database, arguments.arg)
-                    Operation.PRINT -> return handlerPrint(pool, database, arguments.arg)
-                    Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
-                    Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
-                    Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
-                    Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
-                    Operation.CREATE -> return handlerCreate(pool, database, arguments.arg)
-                    Operation.ERROR -> return handlerError()
-                    Operation.NULL -> return ""
-                    Operation.END -> return ""
-                }
+    if (database == null)
+        return report(Message.INVALID_ARGUMENTS)
+
+    log(database, listOf(arguments.operation.name, arguments.arg).joinToString(":"))
+    when (mode) {
+        Mode.READ -> {
+            when (arguments.operation) {
+                Operation.INSERT -> return handlerError()
+                Operation.DELETE -> return handlerError()
+                Operation.DELETE_ALL -> return handlerError()
+                Operation.FIND -> return handlerFind(pool, database, arguments.arg)
+                Operation.FIND_ALL -> return handlerFindAll(pool, database, arguments.arg)
+                Operation.CLEAR -> return handlerError()
+                Operation.RECOVERY -> return handlerError()
+                Operation.PRINT -> return handlerPrint(pool, database, arguments.arg)
+                Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
+                Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
+                Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
+                Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
+                Operation.CREATE -> return handlerError()
+                Operation.ERROR -> return handlerError()
+                Operation.NULL -> return ""
+                Operation.END -> return ""
             }
         }
-    } else
-        return report(Message.INVALID_ARGUMENTS)
+        Mode.WRITE -> {
+            when (arguments.operation) {
+                Operation.INSERT -> return handlerInsert(pool, database, arguments.arg)
+                Operation.DELETE -> return handlerDelete(pool, database, arguments.arg)
+                Operation.DELETE_ALL -> return handlerDeleteAll(pool, database, arguments.arg)
+                Operation.FIND -> return handlerFind(pool, database, arguments.arg)
+                Operation.FIND_ALL -> return handlerFindAll(pool, database, arguments.arg)
+                Operation.CLEAR -> return handlerClear(pool, database, arguments.arg)
+                Operation.RECOVERY -> return handlerRecovery(pool, database, arguments.arg)
+                Operation.PRINT -> return handlerPrint(pool, database, arguments.arg)
+                Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
+                Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
+                Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
+                Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
+                Operation.CREATE -> return handlerCreate(pool, database, arguments.arg)
+                Operation.ERROR -> return handlerError()
+                Operation.NULL -> return ""
+                Operation.END -> return ""
+            }
+        }
+    }
 }
 
 /**
