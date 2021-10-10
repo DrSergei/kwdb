@@ -31,7 +31,7 @@ data class ArgsCLI(val input: String, val mode: Mode)
 /**
  * Служебная функция.
  *
- * Обрабатывает аргументы командной строки и выбирает сценарий работы.
+ * Обрабатывает аргументы командной строки и возвращает их.
  */
 fun prepareArgs(args: Array<String>) : ArgsCLI {
     try {

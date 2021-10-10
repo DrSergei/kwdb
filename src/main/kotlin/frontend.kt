@@ -191,6 +191,11 @@ fun handlerRecovery(pool: Pool, database: Database, args: List<String>): String 
     }
 }
 
+/**
+ * Служебная функция.
+ *
+ * Обработчик операции печати данных.
+ */
 fun handlerPrint(pool : Pool, database: Database, args: List<String>) : String {
     when {
         (args.isEmpty() && database.name == "pool") -> {
@@ -209,6 +214,7 @@ fun handlerPrint(pool : Pool, database: Database, args: List<String>) : String {
         else -> return report(Message.INVALID_ARGUMENTS)
     }
 }
+
 /**
  * Служебная функция.
  *
@@ -330,7 +336,7 @@ fun handlerNull(pool: Pool, database: Database, args: List<String>): String { //
 }
 
 /**
- * Таблица методов.
+ * Таблица обработчиков.
  *
  * Таблица для режима чтения.
  */
@@ -354,7 +360,7 @@ val handlersRead = mapOf(
 )
 
 /**
- * Таблица методов.
+ * Таблица обработчиков.
  *
  * Таблица для режима чтения и записи.
  */
