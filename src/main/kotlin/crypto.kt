@@ -1,14 +1,13 @@
 /**
  *  Пакет для шифрования.
  *
- *  Реализует шифр Вернама с построением полного ключа по пользовательскому.
+ *  Реализует шифр AES с построением полного ключа по пользовательскому.
  */
 package crypto
 
-import kotlin.experimental.*
-import kotlin.random.*
-
 // Импорт.
+import javax.crypto.*
+import javax.crypto.spec.*
 
 /**
  * Служебная функция.
@@ -18,12 +17,11 @@ import kotlin.random.*
 fun encode(key : String, message : ByteArray) : ByteArray {
     if (key == "")
         return message
-    val result = ByteArray(message.size)
-    val random = Random(key.sumOf { it.code }) // ключ строится генератором случайных чисел по xor символов пароля
-    for (index in message.indices) {
-        result[index] = message[index].xor(random.nextBytes(1).first())
-    }
-    return result
+    val buffer = key.repeat(16)
+    val cipher = Cipher.getInstance("AES")
+    val secretKey = SecretKeySpec(buffer.toByteArray().copyOf(16), "AES")
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+    return cipher.doFinal(message)
 }
 
 /**
@@ -34,10 +32,9 @@ fun encode(key : String, message : ByteArray) : ByteArray {
 fun decode(key : String, message : ByteArray) : ByteArray {
     if (key == "")
         return message
-    val result = ByteArray(message.size)
-    val random = Random(key.sumOf { it.code }) // ключ строится генератором случайных чисел по xor символов пароля
-    for (index in message.indices) {
-        result[index] = message[index].xor(random.nextBytes(1).first())
-    }
-    return result
+    val buffer = key.repeat(16)
+    val cipher = Cipher.getInstance("AES")
+    val secretKey = SecretKeySpec(buffer.toByteArray().copyOf(16), "AES")
+    cipher.init(Cipher.DECRYPT_MODE, secretKey)
+    return cipher.doFinal(message)
 }

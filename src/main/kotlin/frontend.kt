@@ -316,7 +316,7 @@ fun handlerCreate(pool: Pool, database: Database, args: List<String>) : String {
  *
  * Обработчик ошибочного ввода.
  */
-fun handlerError(pool: Pool, database: Database, args: List<String>): String {
+fun handlerError(pool: Pool, database: Database, args: List<String>): String { // лишние аргументы для совместимости
     return report(Message.INVALID_ARGUMENTS)
 }
 
@@ -325,7 +325,7 @@ fun handlerError(pool: Pool, database: Database, args: List<String>): String {
  *
  * Обработчик пустого ввода.
  */
-fun handlerNull(pool: Pool, database: Database, args: List<String>): String {
+fun handlerNull(pool: Pool, database: Database, args: List<String>): String { // лишние аргументы для совместимости
     return ""
 }
 
@@ -383,9 +383,9 @@ val handlersWrite = mapOf(
  * Выбирает нужный обработчик для каждой операции с учетом режима работы.
  */
 fun distributionInput(pool: Pool, arguments: Arguments, mode: Mode): String {
-    val database = pool.data[arguments.name] ?: return report(Message.INVALID_ARGUMENTS)
     if (arguments.operation == Operation.NULL)
         return ""
+    val database = pool.data[arguments.name] ?: return report(Message.INVALID_ARGUMENTS)
     log(database, listOf(arguments.operation.name, arguments.arg).joinToString(":"))
     when (mode) {
         Mode.READ -> return handlersRead[arguments.operation]?.invoke(pool, database, arguments.arg) ?: report(Message.INVALID_ARGUMENTS)

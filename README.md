@@ -69,7 +69,7 @@
 Предупреждение. Используются внешние библиотеки 
 [kotlinx-serialization-json](https://github.com/Kotlin/kotlinx.serialization),
 [kotlinx-cli](https://github.com/Kotlin/kotlinx-cli),
-и собственная реализация криптографии.
+и реализация криптографии [javax-crypto](https://docs.oracle.com/javase/7/docs/api/javax/crypto/package-summary.html).
 
 ## Тестирование
 
