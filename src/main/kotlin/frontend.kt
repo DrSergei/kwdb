@@ -316,9 +316,66 @@ fun handlerCreate(pool: Pool, database: Database, args: List<String>) : String {
  *
  * Обработчик ошибочного ввода.
  */
-fun handlerError(): String {
+fun handlerError(pool: Pool, database: Database, args: List<String>): String {
     return report(Message.INVALID_ARGUMENTS)
 }
+
+/**
+ * Служебная функция.
+ *
+ * Обработчик пустого ввода.
+ */
+fun handlerNull(pool: Pool, database: Database, args: List<String>): String {
+    return ""
+}
+
+/**
+ * Таблица методов.
+ *
+ * Таблица для режима чтения.
+ */
+val handlersRead = mapOf(
+    Operation.INSERT to ::handlerError,
+    Operation.DELETE to ::handlerError,
+    Operation.DELETE_ALL to ::handlerError,
+    Operation.FIND to ::handlerFind,
+    Operation.FIND_ALL to ::handlerFindAll,
+    Operation.CLEAR to ::handlerError,
+    Operation.RECOVERY to ::handlerError,
+    Operation.SIZE to ::handlerSize,
+    Operation.PRINT to ::handlerPrint,
+    Operation.DOWNLOAD to ::handlerDownload,
+    Operation.SAVE to ::handlerError,
+    Operation.EXIT to ::handlerExit,
+    Operation.CREATE to ::handlerCreate,
+    Operation.ERROR to ::handlerError,
+    Operation.NULL to ::handlerNull,
+    Operation.END to ::handlerNull,
+)
+
+/**
+ * Таблица методов.
+ *
+ * Таблица для режима чтения и записи.
+ */
+val handlersWrite = mapOf(
+    Operation.INSERT to ::handlerInsert,
+    Operation.DELETE to ::handlerDelete,
+    Operation.DELETE_ALL to ::handlerDeleteAll,
+    Operation.FIND to ::handlerFind,
+    Operation.FIND_ALL to ::handlerFindAll,
+    Operation.CLEAR to ::handlerClear,
+    Operation.RECOVERY to ::handlerRecovery,
+    Operation.SIZE to ::handlerSize,
+    Operation.PRINT to ::handlerPrint,
+    Operation.DOWNLOAD to ::handlerDownload,
+    Operation.SAVE to ::handlerSave,
+    Operation.EXIT to ::handlerExit,
+    Operation.CREATE to ::handlerCreate,
+    Operation.ERROR to ::handlerError,
+    Operation.NULL to ::handlerNull,
+    Operation.END to ::handlerNull,
+)
 
 /**
  * Служебная функция.
@@ -326,54 +383,13 @@ fun handlerError(): String {
  * Выбирает нужный обработчик для каждой операции с учетом режима работы.
  */
 fun distributionInput(pool: Pool, arguments: Arguments, mode: Mode): String {
-    val database = pool.data[arguments.name]
+    val database = pool.data[arguments.name] ?: return report(Message.INVALID_ARGUMENTS)
     if (arguments.operation == Operation.NULL)
         return ""
-    if (database == null)
-        return report(Message.INVALID_ARGUMENTS)
-
     log(database, listOf(arguments.operation.name, arguments.arg).joinToString(":"))
     when (mode) {
-        Mode.READ -> {
-            when (arguments.operation) {
-                Operation.INSERT -> return handlerError()
-                Operation.DELETE -> return handlerError()
-                Operation.DELETE_ALL -> return handlerError()
-                Operation.FIND -> return handlerFind(pool, database, arguments.arg)
-                Operation.FIND_ALL -> return handlerFindAll(pool, database, arguments.arg)
-                Operation.CLEAR -> return handlerError()
-                Operation.RECOVERY -> return handlerError()
-                Operation.PRINT -> return handlerPrint(pool, database, arguments.arg)
-                Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
-                Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
-                Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
-                Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
-                Operation.CREATE -> return handlerError()
-                Operation.ERROR -> return handlerError()
-                Operation.NULL -> return ""
-                Operation.END -> return ""
-            }
-        }
-        Mode.WRITE -> {
-            when (arguments.operation) {
-                Operation.INSERT -> return handlerInsert(pool, database, arguments.arg)
-                Operation.DELETE -> return handlerDelete(pool, database, arguments.arg)
-                Operation.DELETE_ALL -> return handlerDeleteAll(pool, database, arguments.arg)
-                Operation.FIND -> return handlerFind(pool, database, arguments.arg)
-                Operation.FIND_ALL -> return handlerFindAll(pool, database, arguments.arg)
-                Operation.CLEAR -> return handlerClear(pool, database, arguments.arg)
-                Operation.RECOVERY -> return handlerRecovery(pool, database, arguments.arg)
-                Operation.PRINT -> return handlerPrint(pool, database, arguments.arg)
-                Operation.SIZE -> return handlerSize(pool, database, arguments.arg)
-                Operation.DOWNLOAD -> return handlerDownload(pool, database, arguments.arg)
-                Operation.SAVE -> return handlerSave(pool, database, arguments.arg)
-                Operation.EXIT -> return handlerExit(pool, database, arguments.arg)
-                Operation.CREATE -> return handlerCreate(pool, database, arguments.arg)
-                Operation.ERROR -> return handlerError()
-                Operation.NULL -> return ""
-                Operation.END -> return ""
-            }
-        }
+        Mode.READ -> return handlersRead[arguments.operation]?.invoke(pool, database, arguments.arg) ?: report(Message.INVALID_ARGUMENTS)
+        Mode.WRITE -> return handlersWrite[arguments.operation]?.invoke(pool, database, arguments.arg) ?: report(Message.INVALID_ARGUMENTS)
     }
 }
 
@@ -405,7 +421,7 @@ fun inputFile(name: String, mode : Mode) {
     pool.data["pool"] = Database("pool", hashMapOf(), 0, File(""), File(""))
     val file = File(name)
     if (file.exists() && file.canRead()) {
-        for (request in file.readLines()) {
+        file.readLines().forEach { request ->
             val arguments = parser(request.trim())
             if (arguments.operation == Operation.END)
                 return

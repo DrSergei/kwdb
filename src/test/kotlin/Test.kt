@@ -271,7 +271,22 @@ internal class TestFrontend {
 
     @Test
     fun testhandlerError() {
-        assertEquals(report(Message.INVALID_ARGUMENTS), handlerError())
+        val pool = Pool(mutableMapOf())
+        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
+        pool.data["pool"] = databaseRoot
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
+        pool.data["demo"] = database
+        assertEquals(report(Message.INVALID_ARGUMENTS), handlerError(pool, database, listOf()))
+    }
+
+    @Test
+    fun testhandlerNull() {
+        val pool = Pool(mutableMapOf())
+        val databaseRoot = Database("pool", hashMapOf(), 0, File(""), File(""))
+        pool.data["pool"] = databaseRoot
+        val database = Database("demo", hashMapOf(Pair("x", Mark("x", false))), 1, File(""), File(""))
+        pool.data["demo"] = database
+        assertEquals("", handlerNull(pool, database, listOf()))
     }
 }
 
