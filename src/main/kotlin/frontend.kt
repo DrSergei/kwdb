@@ -322,18 +322,15 @@ fun handlerCreate(pool: Pool, database: Database, args: List<String>) : String {
  *
  * Обработчик ошибочного ввода.
  */
-fun handlerError(pool: Pool, database: Database, args: List<String>): String { // лишние аргументы для совместимости
-    return report(Message.INVALID_ARGUMENTS)
-}
+fun handlerError(pool: Pool, database: Database, args: List<String>) = report(Message.INVALID_ARGUMENTS) // лишние аргументы для совместимости
 
 /**
  * Служебная функция.
  *
  * Обработчик пустого ввода.
  */
-fun handlerNull(pool: Pool, database: Database, args: List<String>): String { // лишние аргументы для совместимости
-    return ""
-}
+fun handlerNull(pool: Pool, database: Database, args: List<String>) = "" // лишние аргументы для совместимости
+
 
 /**
  * Таблица обработчиков.

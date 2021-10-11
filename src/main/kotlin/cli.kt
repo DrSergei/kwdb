@@ -39,10 +39,7 @@ fun prepareArgs(args: Array<String>) : ArgsCLI {
         val input by parser.option(ArgType.String, shortName = "i", description = "Input file(txt file)")
         val mode by parser.option(ArgType.Choice<Mode>(), shortName = "m", description = "Operating mode").default(Mode.READ)
         parser.parse(args)
-        if (input == null)
-            return ArgsCLI("", mode)
-        else
-            return ArgsCLI(input!!, mode) // есть проверка на null, безопасный вызов
+        return ArgsCLI(input ?: "", mode)
     } catch (e: Exception) {
         println(report(INVALID_ARGUMENTS))
         throw e
